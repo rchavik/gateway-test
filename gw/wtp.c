@@ -72,25 +72,6 @@ static unsigned long wtp_tid = 0;
 
 Mutex *wtp_tid_lock = NULL;
 
-/*
- * Data structure for handling reassembly, containing, for instance, various segment lists.
- * See field comments for details.
- */
-
-struct Segments {
-
-       WTPSegment *list;             /* List of segments received */
-       WTPSegment *ackd;             /* List of segments acknowledged */
-       WTPSegment *missing;          /* Missing segments list */
-       WTPSegment *first;            /* pointer to first of the segments assembled*/
-       WAPEvent *event;              /* event perhaps containing a segment (instead of a 
-                                        complete message*/
-       int negative_ack_sent;
-       Mutex *lock;                  /* Lock for serialising reassembly operations */
-};
-
-typedef struct Segments Segments;
-
 /*****************************************************************************
  *
  * Prototypes of internal functions:
@@ -130,8 +111,6 @@ static WAPEvent *remove_from_event_queue(WTPMachine *machine);
 
 static long deduce_tid(Msg *msg);
 static unsigned char deduce_pdu_type(unsigned char octet);
-
-static int message_type(unsigned char octet);
 
 static int protocol_version(unsigned char octet);
 
@@ -702,30 +681,6 @@ static unsigned char deduce_pdu_type(unsigned char octet){
        }
 }
 
-static int message_type(unsigned char octet){
-
-       unsigned char this_octet,
-                     gtr,
-                     ttr;
-
-       this_octet = octet;
-       gtr = this_octet>>2&1;
-       this_octet = octet;
-       ttr = this_octet>>1&1;
-
-       if (gtr == 1 && ttr == 1)
-	  return single_message;  
-       if (gtr == 0 && ttr == 0)
-          return body_segment;
-       if (gtr == 1 && ttr == 0)
-          return group_trailer_segment;
-       if (gtr == 0 && ttr == 1)
-          return transmission_trailer_segment;
-
-/* Following return is unnecessary but required by the compiler */
-       return 0;
-}
-
 static int protocol_version(unsigned char octet){
 
        return octet>>6&3;
@@ -801,20 +756,9 @@ WAPEvent *unpack_invoke(Msg *msg, long tid,
          event = unpack_invoke_flags(event, msg, tid, first_octet, fourth_octet);
          octstr_delete(msg->wdp_datagram.user_data, 0, 4);
  
-         switch (message_type(first_octet)) {
-         
-	        case  single_message:
-                      event->RcvInvoke.user_data = octstr_duplicate(
-                                                   msg->wdp_datagram.user_data); 
-                      return event;
-                break;
-
-	        default:
-                      debug("wap.wtp", 0, "WTP: Got a strange message");
-                      event = tell_about_error(illegal_header, event, msg, tid);
-                      return event;
-                break;
-         }
+	 event->RcvInvoke.user_data = 
+	 	octstr_duplicate(msg->wdp_datagram.user_data); 
+         return event;
 }
 
 /*
