@@ -4,6 +4,4 @@
 
 set -e
 
-if [ purge = "$1" ]; then
-    update-rc.d kannel remove >/dev/null
-fi
+#DEBHELPER#

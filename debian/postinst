@@ -29,10 +29,6 @@ chmod 0700 /var/log/kannel
 chown kannel.root /etc/kannel
 chmod 0700 /etc/kannel
 
-# Update rc.d links.
-
-update-rc.d kannel defaults >/dev/null
-
 # Create /var/run/kannel for Kannel pid files, which are created by
 # user kannel, not user root.
 
@@ -47,3 +43,6 @@ chown kannel.root /var/run/kannel
 # XXX Current run level can be received via runlevel(8).
 
 /etc/init.d/kannel start
+
+
+#DEBHELPER#

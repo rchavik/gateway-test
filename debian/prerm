@@ -6,3 +6,5 @@ if test -d /var/run/kannel
 then
     rmdir /var/run/kannel
 fi
+
+#DEBHELPER#
