@@ -440,31 +440,6 @@ WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
                     return unpack_abort(msg, tid, first_octet, fourth_octet);
                break;
 
-               case SEGMENTED_INVOKE:
-                    fourth_octet = octstr_get_char(msg->wdp_datagram.user_data, 3);
-
-                    if (fourth_octet == -1){
-                       event = tell_about_error(pdu_too_short_error, event, msg, tid);
-                       return event;
-                    }
-                    
-                    mutex_lock(segments->lock);
-                    segments->event->RcvInvoke.user_data = unpack_segmented_invoke(
-                              msg, segments->list, tid, first_octet, fourth_octet);
-
-                    if (message_type(first_octet) == transmission_trailer_segment){
-                       event = wap_event_duplicate(segments->event);
-                       mutex_unlock(segments->lock);
-                       segment_lists_destroy(segments);
-                       segments = segment_lists_create_empty();
-                       return event;
-
-                    } else {
-                       mutex_unlock(segments->lock);
-                       return NULL;
-                    }
-              break;
-                  
               case NEGATIVE_ACK:
                    fourth_octet = octstr_get_char(msg->wdp_datagram.user_data, 3);
 
