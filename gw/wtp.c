@@ -164,8 +164,6 @@ static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid)
 static WAPEvent *unpack_invoke_flags(WAPEvent *event, Msg *msg, long tid, 
        unsigned char first_octet, unsigned char fourth_octet);
 
-static int first_segment(WAPEvent *event);
-
 static Address *deduce_reply_address(Msg *msg);
 
 /******************************************************************************
@@ -388,17 +386,8 @@ WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
                      event = unpack_invoke(msg, segments->list, tid, first_octet, 
                                            fourth_octet);
 
-                     if (first_segment(event)) {
-			gw_assert(segments->event == NULL);
-                        segments->event = wap_event_duplicate(event);
-                        wap_event_destroy(event);
-                        mutex_unlock(segments->lock);
-                        return NULL;
-
-                     } else {
-                        mutex_unlock(segments->lock);
-                        return event;
-                     }   
+		     mutex_unlock(segments->lock);
+		     return event;
                break;
 
                case ACK:
@@ -985,23 +974,6 @@ static WAPEvent *unpack_invoke_flags(WAPEvent *event, Msg *msg, long tid,
          event->RcvInvoke.tcl = tcl; 
 
          return event;
-}
-
-/*
- * If there is no data yet collected at userdata field of WAPEvent, we have the first
- * segment. Of course, this not a general function for deciding whether some segment 
- * of a message is the first one. 
- */
-static int first_segment(WAPEvent *event){
-
-       int first_segment = 0;
-
-       if (event->RcvInvoke.user_data == NULL)
-          first_segment = 1;
-       else
-          first_segment = 0;
-
-       return first_segment;
 }
 
 /*
