@@ -91,8 +91,6 @@ struct Segments {
 
 typedef struct Segments Segments;
 
-static Segments *segments = NULL;
-
 /*****************************************************************************
  *
  * Prototypes of internal functions:
@@ -103,21 +101,6 @@ static Segments *segments = NULL;
 static WTPMachine *wtp_machine_create_empty(void);
 static void wtp_machine_destroy(WTPMachine *sm);
 
-/*
- * Functions for handling segments
- *
- * Both segment lists  data structure
- */
-
-static Segments *segment_lists_create_empty(void);
-static void segment_lists_destroy(Segments *segments);
-
-/*
- * and segments
- */
-static WTPSegment *create_segment(void);
-
-static void segment_destroy(WTPSegment *segment);
 
 /*
  * Print a wtp event or a wtp machine state name as a string.
@@ -157,7 +140,7 @@ static WAPEvent *unpack_ack(long tid, unsigned char octet);
 static WAPEvent *unpack_abort(Msg *msg, long tid, unsigned char first_octet, 
                               unsigned char fourth_octet);
 
-static WAPEvent *unpack_invoke(Msg *msg, WTPSegment *segment, long tid, 
+static WAPEvent *unpack_invoke(Msg *msg, long tid, 
        unsigned char first_octet, unsigned char fourth_octet);
 
 static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid);
@@ -382,11 +365,9 @@ WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
                          return event;
                      }
                      
-                     mutex_lock(segments->lock);
-                     event = unpack_invoke(msg, segments->list, tid, first_octet, 
+                     event = unpack_invoke(msg, tid, first_octet, 
                                            fourth_octet);
 
-		     mutex_unlock(segments->lock);
 		     return event;
                break;
 
@@ -481,7 +462,6 @@ unsigned long wtp_tid_next(void){
 void wtp_init(void) {
      machines = list_create();
      wtp_tid_lock = mutex_create();
-     segments = segment_lists_create_empty();
 }
 
 void wtp_shutdown(void) {
@@ -490,7 +470,6 @@ void wtp_shutdown(void) {
      while (list_len(machines) > 0)
 	wtp_machine_destroy(list_extract_first(machines));
      list_destroy(machines);
-     segment_lists_destroy(segments);
      mutex_destroy(wtp_tid_lock);
 }
 
@@ -623,55 +602,6 @@ WTPMachine *wtp_machine_create(Octstr *source_address,
 
            return machine;
 } 
-
-static Segments *segment_lists_create_empty(void){
-
-       Segments *segments = NULL;
-
-       segments = gw_malloc(sizeof(Segments));
-
-       segments->list = create_segment();   
-       segments->ackd = create_segment();    
-       segments->missing = create_segment(); 
-       segments->first = create_segment();            
-       segments->event = NULL;                      /* there is no empty event */
-       segments->negative_ack_sent = 0;
-       segments->lock = mutex_create();                  
-
-       return segments;
-}
-
-static void segment_lists_destroy(Segments *segments){
-
-       segment_destroy(segments->list);   
-       segment_destroy(segments->ackd);    
-       segment_destroy(segments->missing); 
-       segment_destroy(segments->first);            
-       wap_event_destroy(segments->event);
-       mutex_destroy(segments->lock);   
-       gw_free(segments);   
-}
-
-static WTPSegment *create_segment(void){
-
-       WTPSegment *segment = NULL;
-
-       segment = gw_malloc(sizeof(WTPSegment));
-       segment->tid = 0;
-       segment->packet_sequence_number = 0;
-       segment->data = octstr_create_empty();
-       
-       segment->next = NULL;
-
-       return segment;
-}
-
-static void segment_destroy(WTPSegment *segment){
-
-       octstr_destroy(segment->data);
-       gw_free(segment->next);
-       gw_free(segment);
-}
 
 /*
  * Packs a wsp event. Fetches flags and user data from a wtp event. Address 
@@ -850,7 +780,7 @@ WAPEvent *unpack_abort(Msg *msg, long tid, unsigned char first_octet, unsigned
  * to add the received segment to the message identified by tid. Invoke message has 
  * an implicit sequence number 0 (it being the first segment).
  */
-WAPEvent *unpack_invoke(Msg *msg, WTPSegment *segments_list, long tid, 
+WAPEvent *unpack_invoke(Msg *msg, long tid, 
                         unsigned char first_octet, unsigned char fourth_octet){
 
          WAPEvent *event = NULL;
