@@ -1260,7 +1260,7 @@ static HTTPSocket *socket_create_client(Octstr *host, int port)
     p->socket = tcpip_connect_to_server(octstr_get_cstr(host), port);
 
     if (p->socket == -1) {
-        free(p);
+        gw_free(p);
         return NULL;
     }
 
@@ -1287,7 +1287,7 @@ static HTTPSocket *socket_create_server(int port)
     p->socket = make_server_socket(port);
 
     if (p->socket == -1) {
-        free(p);
+        gw_free(p);
         return NULL;
     }
 
