@@ -7,6 +7,28 @@ be version 1.2.
 Please try it out and report problems to devel@kannel.org (the 
 development mailing list) or bugs@kannel.org (the bug tracking system).
 
+Changes since version 1.0.1:
+
+New features:
+
+ * Minor improvements to User's Guide, including a section on how to
+   set up a dial-up line.
+
+
+Bugfixes:
+
+ * If a WML file uses single quotes (instead of double) around the
+   character set name, and the HTTP result headers also specified
+   a character set, the WML compiler tried to use both.  This has 
+   been fixed.
+
+ * wapbox: When suppressing an HTTP result body because it is too long
+   for the client, also adjust the Content-Length header.
+
+ * wapbox: Suppress server-generated error pages if they are in a format
+   (such as HTML) that the client does not accept.
+
+
 Changes since version 1.0:
 
 
