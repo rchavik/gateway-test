@@ -1,3 +1,27 @@
+2000-10-12  Kalle Marjola  <rpr@wapit.com>
+
+	* doc/userguide/userguide.xml: added new example: multi-operator
+	SMS Kannel.
+
+2000-10-12  Richard Braakman  <dark@wapit.com>
+
+	* gwlib/gwassert.h: Added parentheses around the panic(...), 0
+	expressions in the assert macros, to get the originally intended
+	meaning.
+
+2000-10-12  Kalle Marjola  <rpr@wapit.com>
+
+	* gw/bearerbox.c, gw/bb_boxc.c, gw/bb_udp.c, gw/bb_smsc.c: Startup
+	improved; not based on 'hopefully they will get up by that time'
+	system but inter-thread wakeup call. Now the bearerbox starts up
+	very quickly.
+
+2000-10-11  Richard Braakman  <dark@wapit.com>
+
+	* wmlscript/wserror.c: Corrected a stray va_arg(ap, char).
+	(va_arg should always get the type as it is after promotion, and
+	char is promoted to int.)
+
 2000-10-11  Tuomas Luttinen  <tuo@wapit.com>
 
 	* gw/wml_compiler.c (string_table_apply): Fixed a bug where an extra 
