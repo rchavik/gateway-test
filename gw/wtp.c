@@ -99,27 +99,14 @@ static void wtp_handle_event(WTPMachine *machine, WAPEvent *event);
  * Creates wtp machine having addsress quintuple and transaction class 
  * iniatilised. If machines list is busy, just waits.
  */ 
-WTPMachine *wtp_machine_create(Octstr *srcaddr, long srcport,
+static WTPMachine *wtp_machine_create(Octstr *srcaddr, long srcport,
 				Octstr *destaddr, long destport, long tid,
 				long tcl);
 
 /*
- * Mark a WTP state machine unused. Normally, removing a state machine from the state 
- * machines list means marking turning off a flag.  If machines list is busy, just wait.
- */
-void wtp_machine_mark_unused(WTPMachine *machine);
-
-
-/*
- * Output the state of the machine and all its fields.
- */
-void wtp_machine_dump(WTPMachine  *machine);
-
-
-/*
  * Generates a new transaction handle by incrementing the previous one by one.
  */
-unsigned long wtp_tid_next(void);
+static unsigned long wtp_tid_next(void);
 
 /*
  * Print a wtp event or a wtp machine state name as a string.
@@ -171,160 +158,6 @@ static Address *deduce_reply_address(Msg *msg);
  *
  * EXTERNAL FUNCTIONS:
  */
-
-/*
- * Mark a WTP state machine unused. Normal functions do not remove machines, just 
- * set a flag. In addition, destroys the timer.
- */
-void wtp_machine_mark_unused(WTPMachine *machine) {
-     machine->in_use = 0;
-     wtp_timer_destroy(machine->timer);
-     machine->timer = NULL;
-}
-
-/*
- * Write state machine fields, using debug function from a project library 
- * wapitlib.c.
- */
-void wtp_machine_dump(WTPMachine *machine){
- 
-       if (machine != NULL){
-
-           debug("wap.wtp", 0, "WTPMachine %p: dump starting", (void *) machine); 
-	   #define INTEGER(name) \
-	           debug("wap.wtp", 0, "  %s: %ld", #name, machine->name)
-           #define MSG(name) \
-                   debug("wap.wtp", 0, "Field %s: ", #name); \
-                   msg_dump(machine->name, 1)
-           #define WSP_EVENT(name) \
-                   debug("wap.wtp", 0, "WSP event %s:", #name); \
-                   wap_event_dump(machine->name)
-           #define ENUM(name) debug("wap.wtp", 0, "  state = %s.", name_state(machine->name))
-	   #define OCTSTR(name)  \
-	   	debug("wap.wtp", 0, "  Octstr field %s :", #name); \
-                octstr_dump(machine->name, 1)
-           #define TIMER(name)   debug("wap.wtp", 0, "  Machine timer %p:", (void *) \
-                                       machine->name)
-           #define MUTEX(name)   if (mutex_try_lock(machine->name) == -1) \
-                                    debug("wap.wtp", 0, "%s locked", #name);\
-                                 else {\
-                                    debug("wap.wtp", 0, "%s unlocked", #name);\
-                                    mutex_unlock(machine->name);\
-                                 }
-           #define NEXT(name) 
-	   #define MACHINE(field) field
-	   #define LIST(name) \
-	           debug("wap.wtp", 0, "  %s %s", #name, \
-		   machine->name ? "non-NULL" : "NULL")
-	   #include "wtp_machine-decl.h"
-           debug("wap.wtp", 0, "WTPMachine dump ends");
-	
-	} else {
-           debug("wap.wtp", 0, "WTP: dump: machine does not exist");
-        }
-}
-
-
-static WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
-
-          WTPMachine *machine = NULL;
-          long tid;
-	  Octstr *src_addr, *dst_addr;
-	  long src_port, dst_port, mid;
-
-	  tid = -1;
-	  src_addr = NULL;
-	  dst_addr = NULL;
-	  src_port = -1;
-	  dst_port = -1;
-	  mid = -1;
-
-          switch (event->type){
-
-	          case RcvInvoke:
-                       tid = event->RcvInvoke.tid;
-		       src_addr = event->RcvInvoke.client_address;
-		       src_port = event->RcvInvoke.client_port;
-		       dst_addr = event->RcvInvoke.server_address;
-		       dst_port = event->RcvInvoke.server_port;
-                  break;
-
-	          case RcvAck:
-                       tid = event->RcvAck.tid;
-		       src_addr = event->RcvAck.client_address;
-		       src_port = event->RcvAck.client_port;
-		       dst_addr = event->RcvAck.server_address;
-		       dst_port = event->RcvAck.server_port;
-                  break;
-
-	          case RcvAbort:
-                       tid = event->RcvAbort.tid;
-		       src_addr = event->RcvAbort.client_address;
-		       src_port = event->RcvAbort.client_port;
-		       dst_addr = event->RcvAbort.server_address;
-		       dst_port = event->RcvAbort.server_port;
-                  break;
-
-	          case RcvErrorPDU:
-                       tid = event->RcvErrorPDU.tid;
-		       src_addr = event->RcvErrorPDU.client_address;
-		       src_port = event->RcvErrorPDU.client_port;
-		       dst_addr = event->RcvErrorPDU.server_address;
-		       dst_port = event->RcvErrorPDU.server_port;
-                  break;
-
-		  case TR_Invoke_Res:
-		  	mid = event->TR_Invoke_Res.mid;
-			break;
-
-		  case TR_Result_Req:
-		  	mid = event->TR_Result_Req.mid;
-			break;
-
-                  default:
-                       debug("wap.wtp", 0, "WTP: machine_find_or_create: unhandled event"); 
-                       wap_event_dump(event);
-                       return NULL;
-                  break;
-	   }
-
-	   gw_assert(src_addr != NULL || mid != -1);
-           machine = wtp_machine_find(src_addr, src_port, dst_addr, dst_port,
-                    		tid, mid);
-           
-           if (machine == NULL){
-
-              switch (event->type){
-/*
- * When PDU with an illegal header is received, its tcl-field is irrelevant (and possibly 
- * meaningless).
- */
-	              case RcvInvoke: 
-	                   machine = wtp_machine_create(
-                                     src_addr, src_port, 
-				     dst_addr, dst_port,
-				     tid, event->RcvInvoke.tcl);
-                           machine->in_use = 1;
-                      break;
-
-	              case RcvAck: 
-			   info(0, "WTP: machine_find_or_create: ack received, yet having no machine");
-                      break;
-
-                      case RcvAbort: 
-			   info(0, "WTP: machine_find_or_create: abort received, yet having no machine");
-                      break;
-                 
-	              default:
-                           debug("wap.wtp", 0, "WTP: machine_find_or_create: unhandled event");
-                           wap_event_dump(event);
-                           return NULL;
-                      break;
-              }
-	   }
-           
-           return machine;
-}
 
 /*
  * Transfers data from fields of a message to fields of WTP event. User data has
@@ -528,6 +361,107 @@ static unsigned char *name_state(int s){
        }
 }
 
+
+static WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
+
+          WTPMachine *machine = NULL;
+          long tid;
+	  Octstr *src_addr, *dst_addr;
+	  long src_port, dst_port, mid;
+
+	  tid = -1;
+	  src_addr = NULL;
+	  dst_addr = NULL;
+	  src_port = -1;
+	  dst_port = -1;
+	  mid = -1;
+
+          switch (event->type){
+
+	          case RcvInvoke:
+                       tid = event->RcvInvoke.tid;
+		       src_addr = event->RcvInvoke.client_address;
+		       src_port = event->RcvInvoke.client_port;
+		       dst_addr = event->RcvInvoke.server_address;
+		       dst_port = event->RcvInvoke.server_port;
+                  break;
+
+	          case RcvAck:
+                       tid = event->RcvAck.tid;
+		       src_addr = event->RcvAck.client_address;
+		       src_port = event->RcvAck.client_port;
+		       dst_addr = event->RcvAck.server_address;
+		       dst_port = event->RcvAck.server_port;
+                  break;
+
+	          case RcvAbort:
+                       tid = event->RcvAbort.tid;
+		       src_addr = event->RcvAbort.client_address;
+		       src_port = event->RcvAbort.client_port;
+		       dst_addr = event->RcvAbort.server_address;
+		       dst_port = event->RcvAbort.server_port;
+                  break;
+
+	          case RcvErrorPDU:
+                       tid = event->RcvErrorPDU.tid;
+		       src_addr = event->RcvErrorPDU.client_address;
+		       src_port = event->RcvErrorPDU.client_port;
+		       dst_addr = event->RcvErrorPDU.server_address;
+		       dst_port = event->RcvErrorPDU.server_port;
+                  break;
+
+		  case TR_Invoke_Res:
+		  	mid = event->TR_Invoke_Res.mid;
+			break;
+
+		  case TR_Result_Req:
+		  	mid = event->TR_Result_Req.mid;
+			break;
+
+                  default:
+                       debug("wap.wtp", 0, "WTP: machine_find_or_create: unhandled event"); 
+                       wap_event_dump(event);
+                       return NULL;
+                  break;
+	   }
+
+	   gw_assert(src_addr != NULL || mid != -1);
+           machine = wtp_machine_find(src_addr, src_port, dst_addr, dst_port,
+                    		tid, mid);
+           
+           if (machine == NULL){
+
+              switch (event->type){
+/*
+ * When PDU with an illegal header is received, its tcl-field is irrelevant (and possibly 
+ * meaningless).
+ */
+	              case RcvInvoke: 
+	                   machine = wtp_machine_create(
+                                     src_addr, src_port, 
+				     dst_addr, dst_port,
+				     tid, event->RcvInvoke.tcl);
+                           machine->in_use = 1;
+                      break;
+
+	              case RcvAck: 
+			   info(0, "WTP: machine_find_or_create: ack received, yet having no machine");
+                      break;
+
+                      case RcvAbort: 
+			   info(0, "WTP: machine_find_or_create: abort received, yet having no machine");
+                      break;
+                 
+	              default:
+                           debug("wap.wtp", 0, "WTP: machine_find_or_create: unhandled event");
+                           wap_event_dump(event);
+                           return NULL;
+                      break;
+              }
+	   }
+           
+           return machine;
+}
 
 /*
  *  We are interested only machines in use, it is, having in_use-flag 1. Transaction

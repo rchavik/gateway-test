@@ -203,8 +203,8 @@ void wtp_timer_dump(WTPTimer *timer){
 	debug("wap.wtp.timer", 0, "Starting time was %ld.", timer->start_time);
 	debug("wap.wtp.timer", 0, "Checking interval was %ld.",
 					timer->interval);
-	debug("wap.wtp.timer", 0, "Timer belonged to a machine:");
-	wtp_machine_dump(timer->machine);
+	debug("wap.wtp.timer", 0, "Timer belonged to a machine: %p", 
+			(void *) timer->machine);
 	debug("wap.wtp.timer", 0, "Timer event was:");
 	wap_event_dump(timer->event);
 	debug("wap.wtp.timer", 0, "Timer dump ends.");

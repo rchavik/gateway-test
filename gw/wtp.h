@@ -143,44 +143,6 @@ void wtp_shutdown(void);
 WAPEvent *wtp_unpack_wdp_datagram(Msg *msg);
 
 
-/*
- * Creates wtp machine having addsress quintuple and transaction class 
- * iniatilised. If machines list is busy, just waits.
- */ 
-WTPMachine *wtp_machine_create(Octstr *srcaddr, long srcport,
-				Octstr *destaddr, long destport, long tid,
-				long tcl);
-
-/*
- * Checks whether wtp machines data structure includes a spesific machine.
- * The machine in question is identified with with source and destination
- * address and port and tid. Address information is fetched from message
- * fields, tid from an field of the event. If the machine does not exist and
- * the event is RcvInvoke, a new machine is created and added in the machines
- * data structure. If the event was RcvAck or RcvAbort, the event is ignored.
- * If the event is RcvErrorPDU, new machine is created.
- */
-WTPMachine *wtp_machine_find_or_create(WAPEvent *event);
-
-
-/*
- * Mark a WTP state machine unused. Normally, removing a state machine from the state 
- * machines list means marking turning off a flag.  If machines list is busy, just wait.
- */
-void wtp_machine_mark_unused(WTPMachine *machine);
-
-
-/*
- * Output the state of the machine and all its fields.
- */
-void wtp_machine_dump(WTPMachine  *machine);
-
-
 void wtp_dispatch_event(WAPEvent *event);
-
-/*
- * Generates a new transaction handle by incrementing the previous one by one.
- */
-unsigned long wtp_tid_next(void);
 
 #endif
