@@ -1,3 +1,8 @@
+2001-04-23  Richard Braakman  <dark@wapit.com>
+
+	* gw/wsp-session.c: Applied a patch from Aymerick Jéhanne that
+	prevents a segmentation fault during shutdown.
+
 2001-03-27  Richard Braakman  <dark@wapit.com>
 
 	* Making release 1.0.3.

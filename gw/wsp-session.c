@@ -122,7 +122,10 @@ void wsp_session_shutdown(void) {
 
 void wsp_session_dispatch_event(WAPEvent *event) {
 	wap_event_assert(event);
-	list_produce(queue, event);
+        if (run_status == running)
+	        list_produce(queue, event);
+        else
+                wap_event_destroy(event);
 }
 
 
