@@ -119,8 +119,6 @@ static WTPSegment *create_segment(void);
 
 static void segment_destroy(WTPSegment *segment);
 
-static WTPSegment *make_missing_segments_list(Msg *msg, 
-                  unsigned char number_of_missing);
 /*
  * Print a wtp event or a wtp machine state name as a string.
  */
@@ -161,8 +159,6 @@ static WAPEvent *unpack_abort(Msg *msg, long tid, unsigned char first_octet,
 
 static WAPEvent *unpack_invoke(Msg *msg, WTPSegment *segment, long tid, 
        unsigned char first_octet, unsigned char fourth_octet);
-
-static WTPSegment *unpack_negative_ack(Msg *msg, unsigned char octet);
 
 static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid);
 static WAPEvent *unpack_invoke_flags(WAPEvent *event, Msg *msg, long tid, 
@@ -422,20 +418,6 @@ WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
 
                     return unpack_abort(msg, tid, first_octet, fourth_octet);
                break;
-
-              case NEGATIVE_ACK:
-                   fourth_octet = octstr_get_char(msg->wdp_datagram.user_data, 3);
-
-                   if (fourth_octet == -1){
-                      event = tell_about_error(pdu_too_short_error, event, msg, tid);
-                      return event;
-                   }
-
-                   mutex_lock(segments->lock);
-                   segments->missing = unpack_negative_ack(msg, fourth_octet);
-                   mutex_unlock(segments->lock);
-                   return NULL;
-              break;
          } /* switch */
 /* Following return is unnecessary but required by the compiler */
          return NULL;
@@ -979,20 +961,6 @@ static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid)
      return NULL;
 }
 
-static WTPSegment *unpack_negative_ack(Msg *msg, unsigned char fourth_octet){
-
-       WTPSegment *missing_segments = NULL;
-       unsigned char number_of_missing_packets = 0;
-       
-       debug("wap.wtp", 0, "WTP: got a negative ack");
-       number_of_missing_packets = fourth_octet; 
-       missing_segments = make_missing_segments_list(msg, 
-                          number_of_missing_packets);      
-
-       return missing_segments;
-}
-
-
 static WAPEvent *unpack_invoke_flags(WAPEvent *event, Msg *msg, long tid, 
                 unsigned char first_octet, unsigned char fourth_octet){
 
@@ -1053,18 +1021,4 @@ static Address *deduce_reply_address(Msg *msg){
        address->destination_port = msg->wdp_datagram.source_port;
 
        return address;
-}
-
-/*
- * Makes a list of missing segments based on negative ack PDU.
- */
-static WTPSegment *make_missing_segments_list(Msg *msg, 
-       unsigned char number_of_missing_packets){
-
-       WTPSegment *missing_segments = NULL;
-
-       gw_assert(msg != NULL);
-       gw_assert(number_of_missing_packets != 0);
-
-       return missing_segments;
 }
