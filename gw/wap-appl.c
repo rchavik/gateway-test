@@ -332,12 +332,12 @@ static void add_x_wap_tod(List *headers) {
 }
 
 
-static void remove_body(List *headers, struct content content) {
-	octstr_destroy(content.body);
-	content.body = octstr_create("");
-	octstr_destroy(content.type);
-	content.type = octstr_create("text/plain");
-        http_header_mark_transformation(headers, content.body, content.type);
+static void remove_body(List *headers, struct content *content) {
+	octstr_destroy(content->body);
+	content->body = octstr_create("");
+	octstr_destroy(content->type);
+	content->type = octstr_create("text/plain");
+        http_header_mark_transformation(headers, content->body, content->type);
 }
 
 
@@ -502,7 +502,7 @@ static void fetch_thread(void *arg) {
                                 octstr_get_cstr(content.type))) {
 		warning(0, "WSP: Content type <%s> not supported by client,"
                            " deleting body.", octstr_get_cstr(content.type));
-		remove_body(resp_headers, content);
+		remove_body(resp_headers, &content);
 	}
 
         /*
@@ -520,7 +520,7 @@ static void fetch_thread(void *arg) {
 		warning(0, "WSP: Entity at %s too large (size %ld B, limit %lu B)",
 			octstr_get_cstr(url), octstr_len(content.body),
 			client_SDU_size);
-		remove_body(resp_headers, content);
+		remove_body(resp_headers, &content);
 	}
 
 	if (content.body == NULL)
