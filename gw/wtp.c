@@ -291,6 +291,8 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
 
           WTPMachine *machine = NULL;
           long tid;
+	  Octstr *src_addr, *dst_addr;
+	  long src_port, dst_port;
 
 	  tid = -1;
           switch (event->type){
@@ -318,10 +320,13 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
                   break;
 	   }
 
-           machine = wtp_machine_find(msg->wdp_datagram.source_address,
-                     msg->wdp_datagram.source_port, 
-                     msg->wdp_datagram.destination_address,
-                     msg->wdp_datagram.destination_port, tid);
+	   src_addr = msg->wdp_datagram.source_address;
+	   dst_addr = msg->wdp_datagram.destination_address;
+	   src_port = msg->wdp_datagram.source_port;
+	   dst_port = msg->wdp_datagram.destination_port;
+
+           machine = wtp_machine_find(src_addr, src_port, dst_addr, dst_port,
+                    		tid);
            
            if (machine == NULL){
 
@@ -332,10 +337,8 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
  */
 	              case RcvInvoke: case RcvErrorPDU:
 	                   machine = wtp_machine_create(
-                                     msg->wdp_datagram.source_address,
-				     msg->wdp_datagram.source_port, 
-				     msg->wdp_datagram.destination_address,
-				     msg->wdp_datagram.destination_port,
+                                     src_addr, src_port, 
+				     dst_addr, dst_port,
 				     tid, event->RcvInvoke.tcl);
                            machine->in_use = 1;
                       break;
