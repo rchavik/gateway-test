@@ -1,3 +1,18 @@
+2000-11-07  Tuomas Luttinen  <tuo@wapit.com>
+
+        * gwlib/octstr.c: Added some protection against endless loops in 
+        strip-functions for special cases.
+
+        * gw/wml_compiler.c: Memory leak with malformed variable fixed. 
+        Also fixed the bug that reserved words cannot be variable names,
+        eg $(password).
+
+2000-11-06  Tuomas Luttinen  <tuo@wapit.com>
+
+        * gw/wml_compiler.c: Variables with syntax errors are now discarded 
+        with warning instead giving up with the whole WML source. Some memory 
+        leak still exists. Also an unknown tag produces a warning in the log.
+
 2000-11-03  Tuomas Luttinen  <tuo@wapit.com>
 
 	* gw/wml_compiler.c: A conformance patch: card and template elements

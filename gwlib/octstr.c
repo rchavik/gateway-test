@@ -1083,7 +1083,8 @@ void octstr_strip_blanks(Octstr *text)
     gw_assert(!text->immutable);
 
     /* Remove white space from the beginning of the text */
-    while (isspace(octstr_get_char(text, start)))
+    while (isspace(octstr_get_char(text, start)) && 
+	   start <= octstr_len(text))
         start ++;
 
     if (start > 0)
@@ -1093,7 +1094,7 @@ void octstr_strip_blanks(Octstr *text)
 
     if ((len = octstr_len(text)) > 0) {
         end = len = len - 1;
-        while (isspace(octstr_get_char(text, end)))
+        while (isspace(octstr_get_char(text, end)) && end >= 0)
             end--;
         octstr_delete(text, end + 1, len - end);
     }
