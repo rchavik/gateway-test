@@ -1,3 +1,36 @@
+2000-10-23  Kalle Marjola  <rpr@wapit.com>
+
+	* doc/userguide/userguide.xml: added missing EMI variable
+	connect-allow-ip.
+
+2000-10-23 Aarno Syvänen <syvanen@wapit.com>
+
+	* gw/wtp_resp_state-decl.h: Spec does not say what to do when state is
+	RESULT_RESP_WAIT and event receiving an invoke. Yet 0.12 logs already
+	have these events. Handled event same way when state is RESULT_WAIT.
+
+2000-10-23  Richard Braakman  <dark@wapit.com>
+
+	* Bugfix: HTTP POST requests have a Content-Length again.
+	Thanks to Stipe Tolj for spotting the problem.
+
+2000-10-20  Kalle Marjola  <rpr@wapit.com>
+
+	* doc/userguide/userguide.xml: wrote appendix B, using fake SMS
+	center.
+
+2000-10-19  Kalle Marjola  <rpr@wapit.com>
+
+	* doc/userguide/userguide.xml: added notes on 'required
+	components' for SMS gateways
+
+	* gw/wapbox.c: modified send_heartbeat to use gwthread_sleep
+	instead of ordinary sleep, so we can use gwthread_wakeup to wake
+	it up when wapbox is killed - now wapbox dies when it catches
+	kill, not after 0-30 seconds.
+
+	* gw/wapbox.c: send that wakeup when bearerbox exits, too.
+
 2000-10-18  Richard Braakman  <dark@wapit.com>
 
 	* gw/bb_udp.c, gwlib/http.c: Corrected some stray free() calls

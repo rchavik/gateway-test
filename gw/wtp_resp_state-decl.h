@@ -16,6 +16,11 @@
  * {} means that the event in question will be ignored (of course, the state 
  * of the machine can change). 
  *
+ * There are many ROWS generating code for ignoring a certain event (ones hav-
+ * ing {} as their action). In these cases the event in question is caused by a
+ * duplicate message and the first one has already changed wtp responder mach-
+ * ine. In this case ignoring the event is natural.
+ *
  * Commenting the state table is perhaps best done by pointing out how various 
  * services provided by WTP contribute rows to the state table.
  *
@@ -136,6 +141,9 @@ ROW(LISTEN,
     },
     LISTEN)
 
+/*
+ * No user indication here: transaction is not yet started.
+ */
 ROW(LISTEN,
     RcvErrorPDU,
     1,
@@ -147,7 +155,8 @@ ROW(LISTEN,
 
 /*
  * We must cache the newly accepted tid item, otherwise every tid after a 
- * suspected one will be validated.
+ * suspected one will be validated. We use wsp event stored by the responder
+ * machine.
  */
 ROW(TIDOK_WAIT,
     RcvAck,
@@ -185,6 +194,9 @@ ROW(TIDOK_WAIT,
     },
     TIDOK_WAIT)
 
+/*
+ * No need for wsp indication: the transaction is not yet started.
+ */
 ROW(TIDOK_WAIT,
     RcvErrorPDU,
     1,
@@ -194,10 +206,6 @@ ROW(TIDOK_WAIT,
     },
     LISTEN)
 
-/*
- * Ignore receiving invoke, when the state of the resp_machine is INVOKE_RESP_
- * WAIT. (Always (1) do nothing ({ }).)
- */
 ROW(INVOKE_RESP_WAIT,
     RcvInvoke,
     1,
@@ -245,6 +253,21 @@ ROW(INVOKE_RESP_WAIT,
     },
     RESULT_RESP_WAIT)
 
+/*
+ * Conditions below do not correspond wholly ones found from the spec. (If 
+ * they does, user acknowledgement flag would never be used by the protocol, 
+ * which cannot be the original intention.) 
+ * User acknowledgement flag is used following way: if it is on, WTP does not
+ * send an acknowledgement (user acknowledgement in form of TR-Invoke.res or 
+ * TR-Result.req instead of provider acknowledgement is awaited); if it is 
+ * off, WTP does this. IMHO, specs support this exegesis: there is condition 
+ * Uack == False && class == 2 with action send ack pdu. In addition, WTP 
+ * 8.3.1 says " When [user acknowledgement] is enabled WTP provider does not
+ * respond to a received message until after WTP user has confirmed the 
+ * indication service primitive by issuing the response primitive".
+ *
+ * BTW: CR correcting this shall appear soonish.
+ */
 ROW(INVOKE_RESP_WAIT,
     TimerTO_A,
     resp_machine->aec < AEC_MAX && resp_machine->tcl == 2 && 
@@ -388,6 +411,34 @@ ROW(RESULT_RESP_WAIT,
      wsp_session_dispatch_event(wsp_event);
     },
     LISTEN)
+
+/*
+ * Specs does not tell what to do, when wtp responder receives invoke pdu and
+ * its state is RESULT_RESP_WAIT. This can happen, however: event causing the 
+ * transition RESULT_WAIT -> RESULT_RESP_WAIT is TR-Result.req, an internal 
+ * responder event. 
+ */
+ROW(RESULT_RESP_WAIT,
+    RcvInvoke,
+    event->u.RcvInvoke.rid == 0,
+    { },
+    RESULT_RESP_WAIT)
+
+ROW(RESULT_RESP_WAIT,
+    RcvInvoke,
+    event->u.RcvInvoke.rid == 1 && resp_machine->ack_pdu_sent == 0,
+    { },
+    RESULT_RESP_WAIT)
+
+ROW(RESULT_RESP_WAIT,
+    RcvInvoke,
+    event->u.RcvInvoke.rid == 1 && resp_machine->ack_pdu_sent == 1,
+    {
+     wtp_send_ack(ACKNOWLEDGEMENT, resp_machine->rid, 
+                  resp_machine->tid, resp_machine->addr_tuple);
+    },
+    RESULT_WAIT)
+
 
 ROW(RESULT_RESP_WAIT,
     RcvAbort,
