@@ -176,13 +176,6 @@ void wtp_machine_mark_unused(WTPMachine *machine);
 void wtp_machine_dump(WTPMachine  *machine);
 
 
-/*
- * Feed an event to a WTP state machine. Handle all errors by itself, do not 
- * report them to the caller. Generate a pointer to WSP event, if an indication 
- * or a confirmation is required.
- */
-void wtp_handle_event(WTPMachine *machine, WAPEvent *event);
-
 void wtp_dispatch_event(WAPEvent *event);
 
 /*

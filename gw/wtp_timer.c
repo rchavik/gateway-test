@@ -187,7 +187,9 @@ void wtp_timer_check(void) {
 	/* This has to be done after the timers list is unlocked, because
 	 * wtp_handle_event can modify timers. */
 	while ((eventp = list_consume(elapsed))) {
+#if 0
 		wtp_handle_event(eventp->machine, eventp->event);
+#endif
 		gw_free(eventp);
 	}
 	list_destroy(elapsed);

@@ -81,7 +81,7 @@ static void wtp_machine_destroy(WTPMachine *sm);
  * report them to the caller. Generate a pointer to WSP event, if an indication 
  * or a confirmation is required.
  */
-void wtp_handle_event(WTPMachine *machine, WAPEvent *event);
+static void wtp_handle_event(WTPMachine *machine, WAPEvent *event);
 
 /*
  * Print a wtp event or a wtp machine state name as a string.
@@ -385,7 +385,7 @@ WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
  * report them to the caller. Note: Do not put {}s of the else block inside
  * the macro definition (it ends with a line without a backlash). 
  */
-void wtp_handle_event(WTPMachine *machine, WAPEvent *event){
+static void wtp_handle_event(WTPMachine *machine, WAPEvent *event){
      WAPEventName current_primitive;
      WAPEvent *wsp_event = NULL;
      WAPEvent *timer_event = NULL;
