@@ -95,6 +95,7 @@ typedef enum states states;
  * See file wtp_machine-decl.h for comments. We define one macro for every type.
  */
 struct WTPMachine {
+	long mid;
         #define INTEGER(name) long name
         #define ENUM(name) states name
         #define MSG(name) Msg *name

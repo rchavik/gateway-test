@@ -130,6 +130,7 @@ WAPEVENT(TR_Invoke_Res,
 WAPEVENT(TR_Result_Req,
       INTEGER(tid)
       OCTSTR(user_data)
+      INTEGER(mid)
       )
 
 WAPEVENT(TR_Abort_Req,

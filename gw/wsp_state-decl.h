@@ -226,7 +226,8 @@ ROW(REQUESTING,
 		wtp_event->TR_Invoke_Res.tid = e->machine->tid;
 		wtp_event->TR_Invoke_Res.exit_info = NULL;
 		wtp_event->TR_Invoke_Res.exit_info_present = 0;
-		wtp_handle_event(e->machine, wtp_event);
+		wtp_event->TR_Invoke_Res.mid = e->machine->mid;
+		wtp_dispatch_event(wtp_event);
 	},
 	PROCESSING)
 

@@ -7,6 +7,7 @@
  * By Aarno Syvänen for WapIT Ltd.
  */
 
+#include "gwlib/gwlib.h"
 #include "wtp.h" 
 
 /*
@@ -61,6 +62,9 @@ static unsigned long wtp_tid = 0;
 
 Mutex *wtp_tid_lock = NULL;
 
+
+static Counter *machine_id_counter = NULL;
+
 /*****************************************************************************
  *
  * Prototypes of internal functions:
@@ -85,7 +89,8 @@ static unsigned char *name_state(int name);
  * or NULL if not found.
  */
 static WTPMachine *wtp_machine_find(Octstr *source_address, long source_port,
-	Octstr *destination_address, long destination_port, long tid);
+	Octstr *destination_address, long destination_port, long tid,
+	long mid);
 
 /*
  * Packs a wsp event. Fetches flags and user data from a wtp event. Address 
@@ -180,10 +185,14 @@ WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
           WTPMachine *machine = NULL;
           long tid;
 	  Octstr *src_addr, *dst_addr;
-	  long src_port, dst_port;
+	  long src_port, dst_port, mid;
 
 	  tid = -1;
 	  src_addr = NULL;
+	  dst_addr = NULL;
+	  src_port = -1;
+	  dst_port = -1;
+	  mid = -1;
 
           switch (event->type){
 
@@ -219,6 +228,10 @@ WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
 		       dst_port = event->RcvErrorPDU.server_port;
                   break;
 
+		  case TR_Invoke_Res:
+		  	mid = event->TR_Invoke_Res.mid;
+			break;
+
                   default:
                        debug("wap.wtp", 0, "WTP: machine_find_or_create: unhandled event"); 
                        wap_event_dump(event);
@@ -226,9 +239,9 @@ WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
                   break;
 	   }
 
-	   gw_assert(src_addr != NULL);
+	   gw_assert(src_addr != NULL || mid != -1);
            machine = wtp_machine_find(src_addr, src_port, dst_addr, dst_port,
-                    		tid);
+                    		tid, mid);
            
            if (machine == NULL){
 
@@ -424,6 +437,7 @@ unsigned long wtp_tid_next(void){
 
 void wtp_init(void) {
      machines = list_create();
+     machine_id_counter = counter_create();
      wtp_tid_lock = mutex_create();
 }
 
@@ -433,6 +447,7 @@ void wtp_shutdown(void) {
      while (list_len(machines) > 0)
 	wtp_machine_destroy(list_extract_first(machines));
      list_destroy(machines);
+     counter_destroy(machine_id_counter);
      mutex_destroy(wtp_tid_lock);
 }
 
@@ -475,6 +490,7 @@ struct machine_pattern {
 	Octstr *destination_address;
 	long destination_port;
 	long tid;
+	long mid;
 };
 
 static int is_wanted_machine(void *a, void *b) {
@@ -483,6 +499,11 @@ static int is_wanted_machine(void *a, void *b) {
 	
 	m = a;
 	pat = b;
+
+	if (m->mid == pat->mid)
+		return 1;
+	if (pat->mid != -1)
+		return 0;
 
 	return octstr_compare(m->source_address, pat->source_address) == 0 &&
                m->source_port == pat->source_port && 
@@ -494,7 +515,8 @@ static int is_wanted_machine(void *a, void *b) {
 }
 
 static WTPMachine *wtp_machine_find(Octstr *source_address, long source_port,
-       Octstr *destination_address, long destination_port, long tid){
+       Octstr *destination_address, long destination_port, long tid,
+       long mid){
 	struct machine_pattern pat;
 	WTPMachine *m;
 	
@@ -503,6 +525,7 @@ static WTPMachine *wtp_machine_find(Octstr *source_address, long source_port,
 	pat.destination_address = destination_address;
 	pat.destination_port = destination_port;
 	pat.tid = tid;
+	pat.mid = mid;
 	
 	m = list_search(machines, &pat, is_wanted_machine);
 	return m;
@@ -515,6 +538,7 @@ static WTPMachine *wtp_machine_create_empty(void){
        WTPMachine *machine = NULL;
 
         machine = gw_malloc(sizeof(WTPMachine));
+	machine->mid = counter_increase(machine_id_counter);
         
         #define INTEGER(name) machine->name = 0
         #define ENUM(name) machine->name = LISTEN
