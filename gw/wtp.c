@@ -9,6 +9,7 @@
 
 #include "gwlib/gwlib.h"
 #include "wtp.h" 
+#include "wtp_pdu.h" 
 
 /*
  * Possible errors in incoming messages.
@@ -191,7 +192,7 @@ static void main_thread(void *);
  * when we have a segment inside of a segmented message.
  */
 WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
-
+#if 0
          WAPEvent *event = NULL;
 
          unsigned char first_octet,
@@ -266,7 +267,78 @@ WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
          } /* switch */
 /* Following return is unnecessary but required by the compiler */
          return NULL;
-} /* function */
+#else
+
+	WTP_PDU *pdu;
+	WAPEvent *event;
+	
+	pdu = wtp_pdu_unpack(msg->wdp_datagram.user_data);
+	if (pdu == NULL)
+		return NULL;
+	
+
+	switch (pdu->type) {
+	case Invoke:
+		event = wap_event_create(RcvInvoke);
+		event->RcvInvoke.user_data = pdu->u.Invoke.user_data;
+		event->RcvInvoke.exit_info = NULL;
+		event->RcvInvoke.tcl = pdu->u.Invoke.class;
+		event->RcvInvoke.tid = pdu->u.Invoke.tid;
+		event->RcvInvoke.tid_new = pdu->u.Invoke.tidnew;
+		event->RcvInvoke.rid = pdu->u.Invoke.rid;
+		event->RcvInvoke.up_flag = pdu->u.Invoke.uack;
+		event->RcvInvoke.exit_info_present = 0;
+		event->RcvInvoke.no_cache_supported = 0;
+		event->RcvInvoke.client_address = 
+			octstr_duplicate(msg->wdp_datagram.source_address);
+		event->RcvInvoke.client_port = 
+			msg->wdp_datagram.source_port;
+		event->RcvInvoke.server_address =
+			octstr_duplicate(msg->wdp_datagram.destination_address);
+		event->RcvInvoke.server_port = 
+			msg->wdp_datagram.destination_port;
+		break;
+
+	case Ack:
+		event = wap_event_create(RcvAck);
+		event->RcvAck.tid = pdu->u.Ack.tid;
+		event->RcvAck.tid_ok = pdu->u.Ack.tidverify;
+		event->RcvAck.rid = pdu->u.Ack.rid;
+		event->RcvAck.client_address = 
+			octstr_duplicate(msg->wdp_datagram.source_address);
+		event->RcvAck.client_port = 
+			msg->wdp_datagram.source_port;
+		event->RcvAck.server_address =
+			octstr_duplicate(msg->wdp_datagram.destination_address);
+		event->RcvAck.server_port = 
+			msg->wdp_datagram.destination_port;
+		break;
+
+	case Abort:
+		event = wap_event_create(RcvAbort);
+		event->RcvAbort.tid = pdu->u.Abort.tid;
+		event->RcvAbort.abort_type = pdu->u.Abort.abort_type;
+		event->RcvAbort.abort_reason = pdu->u.Abort.abort_reason;
+		event->RcvAbort.client_address = 
+			octstr_duplicate(msg->wdp_datagram.source_address);
+		event->RcvAbort.client_port = 
+			msg->wdp_datagram.source_port;
+		event->RcvAbort.server_address =
+			octstr_duplicate(msg->wdp_datagram.destination_address);
+		event->RcvAbort.server_port = 
+			msg->wdp_datagram.destination_port;
+		break;
+
+	default:
+		panic(0, "Unhandled WTP PDU type while unpacking!");
+		break;
+	}
+	
+	wap_event_assert(event);
+	return event;
+
+#endif
+}
 
 void wtp_init(void) {
      machines = list_create();
