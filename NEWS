@@ -1,8 +1,15 @@
-NEWS about Kannel: Open Source WAP and SMS Gateway version 0.10
+NEWS about Kannel: Open Source WAP and SMS Gateway version 0.10.1
 
-This is a STABLE version. It should be usable for production use.
+This is a STABLE version. We will maintain it and make bugfix
+releases until the next stable version, which will be numbered 0.12.
 Please do try it out and report problems to devel@kannel.org (the 
 development mailing list) or bugs@kannel.org (the bug tracking system).
+
+Changes since version 0.10.1:
+
+* Various bugfixes and memory leak fixes in wml compiler, sms-service 
+  urltranslations and phone-as-smsc
+ 
 
 Change summary from version 0.8:
 
@@ -14,6 +21,8 @@ Change summary from version 0.8:
 * All boxes now share a single configuration file, with a new format.
 
 * New bearerbox, which is easier to expand and edit
+
+* Connectionless mode for WAP browsing
 
 * Phone-as-SMSC support, Nokia PremiCell, Siemens M20, Wavecom
 
@@ -39,6 +48,8 @@ Change summary from version 0.8:
 
 * Improved portability to Solaris and FreeBSD.
 
+* Experimental HTTP POST and cookies, under POST_SUPPORT and COOKIE_SUPPORT
+
 * Bug fixes:
 
 	* pthread errno handling.
@@ -57,7 +68,6 @@ Change summary from version 0.8:
 
 * Known limitations:
 
-	* HTTP POST missing
 	* wsp: missing Push and Suspend/Resume
 
 See ChangeLog for detailed information.

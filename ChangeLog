@@ -1,3 +1,207 @@
+2000-07-13  Kalle Marjola  <rpr@wapit.com>
+
+	* */*: Making out release 0.10.2
+
+2000-07-13  Tuomas Luttinen  <tuo@wapit.com>
+
+	* gw/wml_compiler.c (wml_compile): Compiler now checks that the 
+	output from libxml is not a NULL pointer.
+
+2000-07-13  Derry Hamilton <rasilon@tardis.ed.ac.uk>
+	* config.h.in,configure,configure.in: configure now checks for the 
+	32-bit type and defines kint32 and kuint32 as appropriate in 
+	preparation for 64-bit kannel on Alpha and UltraSPARC since the
+	compiler types int32 and uint32 are not supported everywhere.
+	* gwlib/http.h: Added the function definition for 
+	http_charset_accepted rather than leaving it to be implicitly
+	defined.
+	
+2000-07-13  Yann Muller  <ymuller@3glab.com>
+
+	* gw/smsc_at.c: removed two unused variables.
+	
+2000-07-12  Tuomas Luttinen  <tuo@wapit.com>
+
+	* gw/wml_compiler.c: Little bug fixes with variables:
+	- no more empty	string before variable reference to string table
+	- double $ won't eat a character after them
+	- a little memory leak mentioned below corrected
+
+2000-07-12  Kalle Marjola  <rpr@wapit.com>
+
+	* gw/bb_http.c: oops, return value for HTTP admin was not checked,
+	now fixed
+
+	* gw/bearerbox.c: added compiler options KANNEL_NO_SMS and
+	KANNEL_NO_WAP
+
+2000-07-11  Tuomas Luttinen  <tuo@wapit.com>
+
+	* gw/wml_compiler.c: Bug #86 fixed. A memory leak with $ characters 
+	fixed. Another one still remains with mix of $ characters and 
+	variables.
+
+2000-07-11  Yann Muller  <ymuller@3glab.com>
+
+	* doc/userguide/newconf.txt: Added configuration information to use
+	a GSM modem as an SMSC.
+
+2000-07-10  Yann Muller  <ymuller@3glab.com>
+
+	* gw/smsc_at.c: now removes SMSC address at beginning of PDU sent
+	by the Wavecom. Better handling of messages with UDH (no 7bit encoding
+	of UDH yet).
+
+2000-07-10  Kalle Marjola  <rpr@wapit.com>
+
+	* gw/urltrans.c (find_translation): fixed string matching of
+	sms-services.
+
+2000-07-07  Tuomas Luttinen  <tuo@wapit.com>
+
+	* configure: Now support for libxml 1.8.8 and 2.1.1.
+
+	* gw/wml_compiler.c: Support for libxml version 2 and above now ready.
+
+	* gw/wml_compiler.c (parse_attribute): Patch by Holger Casties applied
+	to eliminate a segmentation fault with NULL pointer passed as a second 
+	argument to strcmp.
+
+2000-07-07  Kalle Marjola  <rpr@wapit.com>
+
+	* doc/dialup.txt: updated to reflect current configuration, and
+	added data on how to get it work with Siemens S25i from Matthias Wutke
+
+2000-07-07 Aarno Syvänen <syvanen@wapit.com>
+
+	* gw/wtp.c: Bugfixes in the separation code
+
+	* test/fakewap.c: Added sending of a concatenated message, for testing
+	separation.
+
+2000-07-07  Kalle Marjola  <rpr@wapit.com>
+
+	* gw/bb_boxc.c: hopefully fixed a little bug/feature in connection 
+	closing
+
+2000-07-06  Richard Braakman  <dark@wapit.com>
+
+	* Making release 0.10.1.
+
+	* Extended NEWS.  Removed NEWS.devel, we won't need it until
+	we start on 0.11.
+
+2000-07-06  Kalle Marjola  <rpr@wapit.com>
+
+	* gw/smsc_ois.c: (hopefully) fixed warnings from FreeBSD
+
+2000-07-06  Kalle Marjola  <rpr@wapit.com>
+
+	* gw/bearerbox.c: added --suspended and --isolated command-line
+	option names (same as -S and -I)
+
+	* gw/smsbox.c: fix in command line parsing
+
+	* doc/userguide/newbb.conf: added data on those new options
+
+2000-07-06  Kalle Marjola  <rpr@wapit.com>
+
+	* gw/smsbox.c: modified so that if the HTTP-sendsms interface is
+	defined, the smsbox won't start if it fails to init it. Use new
+	command line option -H or --tryhttp to override this feature 
+
+2000-07-05  Kalle Marjola  <rpr@wapit.com>
+
+	* doc/userguide/newconf.txt: oops, forgot admin-username. And
+	returned sample smsc-groups
+
+	* gw/smsc.c, gw/smsc_p.h, gw/smsc_ois.c: Added support for SEMA
+	SMS2000 (G6.0) OIS 5.0 over X.25, under name OIS, by Jouko Koski.
+
+2000-07-03  Richard Braakman  <dark@wapit.com>
+
+	* gw/wml_definitions.h: Applied patch by brennon loh york hong
+	to fix compilation of pages with multiselect.
+
+2000-07-03 Paul Keogh <paul.keogh@anam.ie>
+
+	* gwlib/http.c,gwlib/http.h,gw/wsp_headers.h,gw/wsp_headers.c,
+	gw/wsp_unit.c,gw/wsp_session_state.h,gw/wsp_method_state.h,
+	gw/wap-appl.c: Added support for HTTP POST under #ifdef POST_SUPPORT.
+	Also enabled runtime cookies under #ifdef COOKIE_SUPPORT.
+
+2000-06-30 Aarno Syvänen <syvanen@apit.com>
+
+	* wsp-unit.c: Fixed some memory leaks
+
+2000-06-30  Aarno Syvänen <syvanen@wapit.com>
+
+	* wtp_tid.c|h, wtp_state-decl.h: Tid was not cached when tid 
+	verification was invoked because of a failed tid validation test.
+	So after every validation all following tids were verified. Added
+	to the the module wtp_tid an external function wtp_tid_set_by
+	machine, which stored tid after validation.
+
+2000-06-30  Richard Braakman  <dark@wapit.com>
+
+	* gw/wml_compiler.c: In parse_octet_string, one extra byte was
+	skipped after a variable reference, including the special "$$"
+	sequence.  Fixed.
+
+2000-06-30  Richard Braakman  <dark@wapit.com>
+
+	* gwlib/http.c: Change some of the locking according to Joerg
+	Pommnitz's suggestions, to deal more smoothly with slow connects.
+
+2000-06-30  Derry Hamilton  <rasilon@tardis.ed.ac.uk>
+
+	* Makefile.in: made .depend depend on config.h.  This should
+	allow changing between checked and unchecked malloc without manual
+	intervention.
+
+2000-06-30  Richard Braakman  <dark@wapit.com>
+
+	* gwlib/gwmem-check.c: Fix call to free() in drop_from_free_ring().
+	This fixes a memory leak.
+
+2000-06-29  Paul Keogh <paul.keogh@anam.ie>
+
+	* gwlib/list.c: Removed unnecessary calls to lock() and unlock() 
+	in the list_cat() function as the called functions do the required locking.
+	Locking the same lock twice causes a panic().
+
+2000-06-29  Richard Braakman  <dark@wapit.com>
+
+	* gw/wsp-session.c: Fixed memory leak in new capability code.
+
+2000-06-29  Richard Braakman  <dark@wapit.com>
+
+	* gw/wap-appl.c: Applied fix suggested by Lim YoungLan, to make
+	sure S-MethodInvoke.res is sent before any S-MethodResult, even
+	if fetch_thread() is very fast.
+
+2000-06-28  Richard Braakman  <dark@wapit.com>
+
+	* wmlscript/wsstdlib.c: Applied Joerg Pommnitz's patch to support 
+        WTAI standard library function calls, after converting it to the
+	local indentation style.
+
+2000-06-27  Kalle Marjola  <rpr@wapit.com>
+
+	* doc/userguide/userguide.xml: did some updating, still needs to
+	integrate newconf.txt and newbb.txt into it, but that some other
+	day
+
+2000-06-27  Paul Keogh <paul.keogh@anam.ie>
+
+	* gw/cookies.c: Added a check for valid WSP session machine to prevent
+	possible crash.
+
+2000-06-26  Derry Hamilton <rasilon@tardis.ed.ac.uk>
+
+	* gw/cookies.c: casted char to int for several isspace() etc. calls.
+	Stops the compiler complaining under Solaris.
+
 2000-06-26  Kalle Marjola  <rpr@wapit.com>
 
 	* Making out stable release 0.10, branched as 'release_0_10'
@@ -47,7 +251,7 @@
 
 2000-06-19  Kalle Marjola  <rpr@wapit.com>
 
-	* gw/wsp-session.c, gw/wsp_pdu.c: inserted patch from Joergz
+	* gw/wsp-session.c, gw/wsp_pdu.c: inserted patch from Joerg
 	Pommnitz, now Kannel hopefully works better with Motorola
 	Timeport.
 
@@ -106,7 +310,7 @@
 
 2000-06-16 Aarno Syvänen <syvanen@wapit.com>
 
-	* wtp.c: Fixed bug pointed out by Joerg Pommnintz
+	* wtp.c: Fixed bug pointed out by Joerg Pommnitz
 
 	* removed debug functions
 

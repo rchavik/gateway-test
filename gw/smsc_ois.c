@@ -59,8 +59,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/timeb.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "smsc.h"
@@ -111,7 +109,7 @@ static int ois_check_input(SMSCenter *smsc, long wait_usec);
 static int ois_check_incoming(SMSCenter *smsc, long wait_usec);
 static void ois_append_to_list(ois_listentry **head, Msg *msg);
 static int ois_int_to_i4(char *raw, int nbr);
-static int ois_increment_counter(void);
+static int ois_increment_counter();
 static int ois_submit_sm_invoke(SMSCenter *smsc, const Msg *msg);
 static int ois_encode_submit_sm_invoke(char *str, const Msg *msg);
 static int ois_append_msisdn(char *raw, const Msg *msg);
@@ -727,7 +725,7 @@ static int ois_int_to_i4(char *raw, int nbr)
     return 4;
 }
 
-static int ois_increment_counter(void)
+static int ois_increment_counter()
 {
     SAY(3, "ois_increment_counter");
 
@@ -1214,12 +1212,12 @@ static int ois_adjust_sm_text(Msg *msg, const char *raw)
 	ois_convert_to_iso88591(buffer, msglen7);
 	if (msg->smart_sms.flag_udh & 0x02) {
 	    msg->smart_sms.flag_udh = 1;
-	    msg->smart_sms.msgdata = octstr_create("");
+	    msg->smart_sms.msgdata = octstr_create_empty();
 	    msg->smart_sms.udhdata = octstr_create_from_data(buffer, msglen7);
 	} else {
 	    msg->smart_sms.flag_udh = 0;
 	    msg->smart_sms.msgdata = octstr_create_from_data(buffer, msglen7);
-	    msg->smart_sms.udhdata = octstr_create("");
+	    msg->smart_sms.udhdata = octstr_create_empty();
 	}
 	msg->smart_sms.flag_8bit = 0;
 	break;
@@ -1228,24 +1226,24 @@ static int ois_adjust_sm_text(Msg *msg, const char *raw)
 	ois_convert_to_iso88591(buffer, msglen8);
 	if (msg->smart_sms.flag_udh & 0x02) {
 	    msg->smart_sms.flag_udh = 1;
-	    msg->smart_sms.msgdata = octstr_create("");
+	    msg->smart_sms.msgdata = octstr_create_empty();
 	    msg->smart_sms.udhdata = octstr_create_from_data(buffer, msglen8);
 	} else {
 	    msg->smart_sms.flag_udh = 0;
 	    msg->smart_sms.msgdata = octstr_create_from_data(buffer, msglen8);
-	    msg->smart_sms.udhdata = octstr_create("");
+	    msg->smart_sms.udhdata = octstr_create_empty();
 	}
 	msg->smart_sms.flag_8bit = 0;
 	break;
     default: /* 0xf4, 0xf5, 0xf6, 0xf7; 8bit to disp, mem, sim or term */ 
 	if (msg->smart_sms.flag_udh & 0x02) {
 	    msg->smart_sms.flag_udh = 1;
-	    msg->smart_sms.msgdata = octstr_create("");
+	    msg->smart_sms.msgdata = octstr_create_empty();
 	    msg->smart_sms.udhdata = octstr_create_from_data(&raw[2], msglen8);
 	} else {
 	    msg->smart_sms.flag_udh = 0;
 	    msg->smart_sms.msgdata = octstr_create_from_data(&raw[2], msglen8);
-	    msg->smart_sms.udhdata = octstr_create("");
+	    msg->smart_sms.udhdata = octstr_create_empty();
 	}
 	msg->smart_sms.flag_8bit = 1;
 	break;

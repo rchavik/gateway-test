@@ -127,8 +127,9 @@ static void wml_binary_output(Octstr *ostr, wml_binary_t *wbxml);
 /* Output into the wml_binary. */
 
 static void output_char(int byte, wml_binary_t **wbxml);
-static int output_octet_string(Octstr *ostr, wml_binary_t **wbxml);
-static int output_plain_octet_string(Octstr *ostr, wml_binary_t **wbxml);
+static int output_terminated_string(Octstr *ostr, wml_binary_t **wbxml);
+static int output_convertable_string(Octstr *ostr, wml_binary_t **wbxml);
+static int output_plain_string(Octstr *ostr, wml_binary_t **wbxml);
 void output_variable(Octstr *variable, Octstr **output, var_esc_t escaped,
 		     wml_binary_t **wbxml);
 
@@ -172,7 +173,7 @@ int wml_compile(Octstr *wml_text,
   if (octstr_search_char(wml_text, '\0') != -1)
     {    
       error(0, 
-	    "WML compiler: Compiling error in WML text. "
+	    "WML compiler: Compiling error: "
 	    "\\0 character found in the middle of the WML source.");
       ret = -1;
     }
@@ -193,8 +194,18 @@ int wml_compile(Octstr *wml_text,
       pDoc = xmlParseMemory(wml_c_text, size);
 #endif
 
-      ret = parse_document(pDoc, charset, &wbxml);
-      wml_binary_output(*wml_binary, wbxml);
+      if(pDoc != NULL)
+	{
+	  ret = parse_document(pDoc, charset, &wbxml);
+	  wml_binary_output(*wml_binary, wbxml);
+	}
+      else
+	{    
+	  error(0, 
+		"WML compiler: Compiling error: "
+                "libxml returned a NULL pointer");
+	  ret = -1;
+	}
     }
 
   wml_binary_destroy(wbxml);
@@ -448,8 +459,19 @@ static int parse_attribute(xmlAttrPtr attr, wml_binary_t **wbxml)
     *p = NULL;
 
   attribute = octstr_create(attr->name);
+
+#if defined(LIBXML_VERSION) && LIBXML_VERSION >= 20000
+
+  if (attr->children != NULL)
+    value = octstr_create(attr->children->content);
+
+#else
+
   if (attr->val != NULL)
     value = octstr_create(attr->val->content);
+
+#endif
+
   else 
     value = NULL;
 
@@ -460,9 +482,10 @@ static int parse_attribute(xmlAttrPtr attr, wml_binary_t **wbxml)
       {
 	/* Check if there's an attribute start token with good value on 
 	   the code page. */
-	for (j = i; 
-	     strcmp(wml_attributes[i].attribute, wml_attributes[j].attribute)
-	       == 0; j++)
+        for (j = i; (wml_attributes[j].attribute != NULL) &&
+	       (strcmp(wml_attributes[i].attribute, 
+		       wml_attributes[j].attribute)
+		== 0); j++)
 	  if (wml_attributes[j].a_value != NULL && value != NULL)	      
 	    {
 	      val_j = octstr_create(wml_attributes[j].a_value);
@@ -493,8 +516,18 @@ static int parse_attribute(xmlAttrPtr attr, wml_binary_t **wbxml)
   /* The rest of the attribute is coded as a inline string. */
   if (value != NULL && coded_length < (int) octstr_len(value))
     {
-      if (coded_length == 0) 
+      if (coded_length == 0)
+
+#if defined(LIBXML_VERSION) && LIBXML_VERSION >= 20000
+
+        p = octstr_create(attr->children->content); 
+
+#else
+
 	p = octstr_create(attr->val->content); 
+
+#endif
+
       else
 	p = octstr_copy(value, coded_length, octstr_len(value) - 
 			coded_length); 
@@ -735,6 +768,7 @@ static int parse_variable(Octstr *text, int start, Octstr **output,
   if (octstr_get_char(variable, 0) == '$')
     {
       octstr_append_char(*output, '$');
+      octstr_destroy(variable);
       ret = 2;
     }
   else
@@ -880,19 +914,22 @@ static int parse_octet_string(Octstr *ostr, wml_binary_t **wbxml)
   /* No variables? Ok, let's take the easy way... */
 
   if ((pos = octstr_search_char(ostr, '$')) < 0)
-    return output_octet_string(ostr, wbxml);
+    return output_terminated_string(ostr, wbxml);
 
   len = octstr_len(ostr);
   output = octstr_create_empty();
   var = octstr_create_empty();
 
-  for ( ; pos < len; pos ++)
+  while (pos < len)
     {
       if (octstr_get_char(ostr, pos) == '$')
 	{
-	  temp = octstr_copy(ostr, start, pos - start);
-	  octstr_insert(output, temp, octstr_len(output));
-	  octstr_destroy(temp);
+	  if (pos > start)
+	    {
+	      temp = octstr_copy(ostr, start, pos - start);
+	      octstr_insert(output, temp, octstr_len(output));
+	      octstr_destroy(temp);
+	    }
 	  
 	  if ((var_len = parse_variable(ostr, pos, &var, wbxml)) > 0)
 	    {
@@ -904,9 +941,11 @@ static int parse_octet_string(Octstr *ostr, wml_binary_t **wbxml)
 		/* The string is output as a inline string and the variable 
 		   as a inline variable reference. */
 		{
-		  output_octet_string(output, wbxml);
+		  if (octstr_len(output) > 0)
+		    if (output_terminated_string(output, wbxml) == -1)
+		      return -1;
 		  octstr_truncate(output, 0);
-		  output_plain_octet_string(var, wbxml);
+		  output_plain_string(var, wbxml);
 		}
 
 	      pos = pos + var_len;
@@ -915,13 +954,18 @@ static int parse_octet_string(Octstr *ostr, wml_binary_t **wbxml)
 	  else
 	    return -1;
 	}
+      else
+	pos ++;
     }
 
   /* Was there still something after the last variable? */
-  if (start < pos - 1)
+  if (start < pos)
     {
       if (octstr_len(output) == 0)
-	output = octstr_copy(ostr, start, pos - start);
+	{
+	  octstr_destroy(output);
+	  output = octstr_copy(ostr, start, pos - start);
+	}
       else
 	{
 	  temp = octstr_copy(ostr, start, pos - start);
@@ -931,7 +975,7 @@ static int parse_octet_string(Octstr *ostr, wml_binary_t **wbxml)
     }
 
   if (octstr_len(output) > 0)
-    if (output_octet_string(output, wbxml) == -1)
+    if (output_terminated_string(output, wbxml) == -1)
       return -1;
   
   octstr_destroy(output);
@@ -1013,14 +1057,14 @@ static void output_char(int byte, wml_binary_t **wbxml)
 
 
 /*
- * output_octet_string - output an octet string into wbxml_string as a 
+ * output_terminated_string - output an octet string into wbxml_string as a 
  * inline string. Returns 0 for success, -1 for an error.
  */
 
-static int output_octet_string(Octstr *ostr, wml_binary_t **wbxml)
+static int output_terminated_string(Octstr *ostr, wml_binary_t **wbxml)
 {
   output_char(STR_I, wbxml);
-  if (output_plain_octet_string(ostr, wbxml) == 0)
+  if (output_convertable_string(ostr, wbxml) == 0)
     {      
       output_char(STR_END, wbxml);
       return 0;
@@ -1031,7 +1075,7 @@ static int output_octet_string(Octstr *ostr, wml_binary_t **wbxml)
 
 
 /*
- * output_plain_octet_string_utf8map - remap ascii to utf8 and
+ * output_plain_octet_utf8map - remap ascii to utf8 and
  * output an octet string into wbxml.
  * Returns 0 for success, -1 for an error.
  */
@@ -1057,17 +1101,32 @@ static int output_plain_octet_utf8map(Octstr *ostr, wml_binary_t **wbxml)
 
 
 /*
- * output_plain_octet_string - output an octet string into wbxml.
- * Returns 0 for success, -1 for an error.
+ * output_convertable_string - output an octet string into wbxml.
+ * Returns 0 for success, -1 for an error. The content is converted 
+ * into UTF-8 if needed.
  */
 
-static int output_plain_octet_string(Octstr *ostr, wml_binary_t **wbxml)
+static int output_convertable_string(Octstr *ostr, wml_binary_t **wbxml)
 {
   if ((*wbxml)->utf8map) 
     output_plain_octet_utf8map(ostr, wbxml) ;
   else
     octstr_insert((*wbxml)->wbxml_string, ostr, 
 		  octstr_len((*wbxml)->wbxml_string));
+  return 0;
+}
+
+
+
+/*
+ * output_plain_string - output an octet string into wbxml.
+ * Returns 0 for success, -1 for an error. No conversions.
+ */
+
+static int output_plain_string(Octstr *ostr, wml_binary_t **wbxml)
+{
+  octstr_insert((*wbxml)->wbxml_string, ostr, 
+		octstr_len((*wbxml)->wbxml_string));
   return 0;
 }
 
@@ -1153,7 +1212,7 @@ static unsigned long string_table_add(Octstr *ostr, wml_binary_t **wbxml)
   octstr_append_char(ostr, STR_END);
 
   /* Check whether the string is unique. */
-  for (i = 0; i < list_len((*wbxml)->string_table); i++)
+  for (i = 0; i < (unsigned long)list_len((*wbxml)->string_table); i++)
     {
       item = list_get((*wbxml)->string_table, i);
       if (octstr_compare(item->string, ostr) == 0)

@@ -76,7 +76,15 @@ int get_cookies (List *headers, const WSPMachine *sm)
 	Cookie *cookie = NULL;
 	long pos = 0;
 
-	gw_assert (sm != NULL);
+	/* This can happen if the user aborts while the HTTP request is pending from the server.
+	 * In that case, the session machine is destroyed and is not available to this function
+	 * for cookie caching.
+	 */
+
+	if (sm == NULL) {
+		info (0, "No session machine for cookie retrieval");
+		return 0;
+	}
 
 	for (pos = 0; pos < list_len (headers); pos++) {
 		header = list_get(headers, pos);
@@ -233,7 +241,7 @@ static Cookie *parse_cookie (Octstr *cookiestr)
 	c = cookie_create ();	/* Never returns NULL */
 
 	while (p != NULL) {
-		while (isspace (*p)) p++;		/* Skip leading whitespace */
+		while (isspace ((int)*p)) p++;		/* Skip leading whitespace */
 
 		if (strcasecmp ("version", p) == 0)
 			f = &c -> version;
@@ -481,7 +489,7 @@ static int parse_http_date (const char *expires)
 	}
 	else {
 		date++;
-		while (isspace(*date))
+		while (isspace((int)*date))
 			++date;
 	}
 
@@ -491,7 +499,7 @@ static int parse_http_date (const char *expires)
 		error (0, "parse_http_date: Bogus date string (%s)", date);
 		return -1;
 	} else
-		while (isspace(*p))
+		while (isspace((int)*p))
 			++p;
 
 	if (MAX_HTTP_DATE_LENGTH < strlen(p)) {
@@ -499,7 +507,7 @@ static int parse_http_date (const char *expires)
 		return -1;
 	}
 
-	if (isalpha (*p)) {
+	if (isalpha ((int)*p)) {
 		/* ctime */
 		sscanf (p, (strstr(p, "DST") ? "%s %d %d:%d:%d %*s %d" : "%s %d %d:%d:%d %d"),
 			month, &ti.tm_mday, &ti.tm_hour, &ti.tm_min,
