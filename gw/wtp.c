@@ -154,6 +154,23 @@ static WAPEvent *unpack_invoke_flags(WAPEvent *event, Msg *msg, long tid,
 
 static Address *deduce_reply_address(Msg *msg);
 
+/*
+ * Give the status the module:
+ *
+ *	limbo
+ *		not running at all
+ *	running
+ *		operating normally
+ *	terminating
+ *		waiting for operations to terminate, returning to limbo
+ */
+static enum { limbo, running, terminating } run_status = limbo;
+
+static List *queue = NULL;
+
+static void main_thread(void *);
+
+
 /******************************************************************************
  *
  * EXTERNAL FUNCTIONS:
@@ -255,9 +272,20 @@ void wtp_init(void) {
      machines = list_create();
      machine_id_counter = counter_create();
      wtp_tid_lock = mutex_create();
+
+     queue = list_create();
+     list_add_producer(queue);
+
+     gw_assert(run_status == limbo);
+     run_status = running;
+     gwthread_create(main_thread, NULL);
 }
 
 void wtp_shutdown(void) {
+     gw_assert(run_status == running);
+     run_status = terminating;
+     list_remove_producer(queue);
+     gwthread_join_all(main_thread);
      debug("wap.wtp", 0, "wtp_shutdown: %ld machines left",
      	   list_len(machines));
      while (list_len(machines) > 0)
@@ -268,19 +296,30 @@ void wtp_shutdown(void) {
 }
 
 void wtp_dispatch_event(WAPEvent *event) {
-	WTPMachine *sm;
-
-	sm = wtp_machine_find_or_create(event);
-	if (sm == NULL)
-		wap_event_destroy(event);
-	else
-		wtp_handle_event(sm, event);
+	list_produce(queue, event);
 }
 
 /*****************************************************************************
  *
  * INTERNAL FUNCTIONS:
  *
+ */
+
+static void main_thread(void *arg) {
+	WTPMachine *sm;
+	WAPEvent *e;
+
+	while (run_status == running && (e = list_consume(queue)) != NULL) {
+		sm = wtp_machine_find_or_create(e);
+		if (sm == NULL)
+			wap_event_destroy(e);
+		else
+			wtp_handle_event(sm, e);
+	}
+}
+
+
+ /*
  * Give the name of an event in a readable form. 
  */
 
