@@ -502,6 +502,8 @@ static void fetch_thread(void *arg) {
 		content.body = octstr_create("");
 		octstr_destroy(content.type);
 		content.type = octstr_create("text/plain");
+		http_header_mark_transformation(resp_headers, content.body,
+					content.type);
 	}
 
 	if (content.body == NULL)

@@ -1,3 +1,8 @@
+2001-02-21  Richard Braakman  <dark@wapit.com>
+
+        * gw/wap-appl.c: When suppressing an HTTP result body because it is
+        too long for the client, also adjust the Content-Length header.
+
 2001-02-13  Richard Braakman  <dark@wapit.com>
 
 	* Making release 1.0.1.
