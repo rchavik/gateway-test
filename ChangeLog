@@ -8,6 +8,26 @@
         * gw/wap-appl.c: When suppressing an HTTP result body because it is
         too long for the client, also adjust the Content-Length header.
 
+2001-02-20  Peter Grönholm  <peter@wapit.com>
+
+        * userguide: Updated section "Installing Kannel from RPM packages"
+
+2001-02-20  Richard Braakman  <dark@wapit.com>
+
+        * userguide: Explained more about syslog-level.
+
+2001-02-16  Richard Braakman  <dark@wapit.com>
+
+	* userguide: Describe when prefix and suffix are used.
+
+	* userguide: Improve description of "omit-empty".  (Suggested
+	by Gildas Perrot.)
+
+2001-02-15  Tuomas Luttinen  <tuo@wapit.com>
+
+        * gw/wml_compiler.c (set_charset): bug reported by Aymerick Jéhanne
+        fixed so no more 2*encoding in the XML-header.
+
 2001-02-13  Richard Braakman  <dark@wapit.com>
 
 	* Making release 1.0.1.
