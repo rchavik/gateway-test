@@ -470,6 +470,8 @@ int smpp_receive_msg(SMSCenter *smsc, Msg **msg) {
 		(*msg)->smart_sms.msgdata = octstr_create(deliver_sm->short_message);
 		(*msg)->smart_sms.udhdata = octstr_create("");
 
+		pdu_free(pdu);
+
 		return 1;
 	}
 
@@ -1453,6 +1455,7 @@ static int pdu_encode_submit_sm(smpp_pdu* pdu, Octstr** str) {
 	memcpy(where, submit_sm->short_message, submit_sm->sm_length);
 
 	newstr = octstr_create_from_data(data, length);
+        gw_free(data);
 
 	*str = newstr;
 

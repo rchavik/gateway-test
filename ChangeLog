@@ -1,3 +1,7 @@
+2000-12-11  Richard Braakman  <dark@wapit.com>
+
+	* gw/smsc_smpp.c: Fixed two memory leaks.
+
 2000-12-11  Lars Wirzenius  <liw@iki.fi>
 
 	* debian/*: Updated for Debian packaging. See debian/changelog
