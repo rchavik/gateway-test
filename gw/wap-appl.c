@@ -482,8 +482,6 @@ static void fetch_thread(void *arg) {
 			http_header_mark_transformation(resp_headers, content.body, content.type);
 	}
 
-	list_destroy(actual_headers, octstr_destroy_item);
-	/* resp_headers will be re-used below */
 	if (resp_headers == NULL)
 	    resp_headers = http_create_empty_headers();
 
@@ -553,6 +551,8 @@ static void fetch_thread(void *arg) {
 	}
 
 	wap_event_destroy(event);
+	list_destroy(actual_headers, octstr_destroy_item);
+	/* resp_headers was re-used above */
 	octstr_destroy(content.type); /* body was re-used above */
 	octstr_destroy(content.url);
 	octstr_destroy(content.charset);
