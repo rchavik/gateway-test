@@ -398,6 +398,9 @@ static void fetch_thread(void *arg) {
 
 	default:
 		error(0, "WSP: Method not supported: %d.", method);
+		content.url = octstr_duplicate(url);
+		content.body = octstr_create_empty();
+		resp_headers = NULL;
 		ret = 501;
 
 	}
@@ -457,6 +460,9 @@ static void fetch_thread(void *arg) {
 		octstr_destroy(content.type);
 		content.type = octstr_create("text/plain");
 	}
+
+	if (content.body == NULL)
+		content.body = octstr_create_empty();
 
 	if (event->type == S_MethodInvoke_Ind) {
 		WAPEvent *e = wap_event_create(S_MethodResult_Req);
