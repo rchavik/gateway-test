@@ -7,14 +7,25 @@ development mailing list) or bugs@kannel.org (the bug tracking system).
 
 Changes since version 0.12:
 
+New features:
+
+ * Userguide updated.
+
 Bugfixes:
+
+ * HTTP POST requests have a Content-Length again.
 
  * URL escaping really uses a better set of "safe" characters.
    (previous bugfix was misapplied and had a reversed effect).
 
+ * In smsbox configuration, %p, %P, %q, and %Q work again.
+
+ * When wapbox is killed, it dies immediately.
+
  * The WMLScript library for phonebook functions is called "PhoneBook",
    not "Phonebook".
 
+ * Small fixes to WTP state machines to handle rare conditions.
 
 Changes since version 0.10:
 
