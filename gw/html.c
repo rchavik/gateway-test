@@ -186,11 +186,11 @@ static void convert_html_entity(Octstr *sms, Octstr *html, long *pos) {
 	char buf[1024];
 	
 	if (octstr_get_char(html, (*pos) + 1) == '#') {
-		i = octstr_parse_long(&code, html, *pos, 10);
+		i = octstr_parse_long(&code, html, (*pos) + 2, 10);
 		if (i > 0) {
 			if (code < 256)
 				octstr_append_char(sms, code);
-			*pos += i + 1;
+			*pos = i + 1;
 			if (octstr_get_char(html, *pos) == ';')
 				++(*pos);
 		}
