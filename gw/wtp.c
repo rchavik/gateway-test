@@ -1,22 +1,13 @@
 /*
  * wtp.c - WTP implementation
  *
- * WTP state machines are stored in the project library data sructure list. 
- * Segments to be reassembled are stored as ordered linked list. 
- *
- * By Aarno Syvänen for WapIT Ltd.
+ * Aarno Syvänen
+ * Lars Wirzenius
  */
 
 #include "gwlib/gwlib.h"
 #include "wtp.h" 
 #include "wtp_pdu.h" 
-
-/*
- * Protocol version (currently, there is only one)
- */
-enum {
-   CURRENT = 0x00
-};
 
 /*
  * Abort types (i.e., provider abort codes defined by WAP)
@@ -157,83 +148,6 @@ static void main_thread(void *);
  * when we have a segment inside of a segmented message.
  */
 WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
-#if 0
-         WAPEvent *event = NULL;
-
-         unsigned char first_octet,
-                  pdu_type;
-         int fourth_octet;              /* if error, -1 is stored into this variable */
- 
-         long tid = 0;
-         
-         tid = deduce_tid(msg);
-
-         if (octstr_len(msg->wdp_datagram.user_data) < 3){
-            event = tell_about_error(pdu_too_short_error, event, msg, tid);
-            debug("wap.wtp", 0, "Got too short PDU (less than three octets)");
-            msg_dump(msg, 0);
-            return event;
-         }
-
-         first_octet = octstr_get_char(msg->wdp_datagram.user_data, 0);
-         pdu_type = deduce_pdu_type(first_octet);
-
-         switch (pdu_type){
-/*
- * Message type cannot be result, because we are a server.
- */
-                case ERRONEOUS: case RESULT: case SEGMENTED_RESULT:
-                     event = tell_about_error(illegal_header, event, msg, tid);
-                     return event;
-                break;
-/*
- * "Not allowed" means (when specification language is applied) concatenated PDUs.
- */
-                case NOT_ALLOWED:
-                     event = tell_about_error(no_concatenation, event, msg, tid);
-                     return event;
-                break;
-/*
- * Invoke PDU is used by first segment of a segmented message, too. 
- */       
-	       case INVOKE:
-                     fourth_octet = octstr_get_char(msg->wdp_datagram.user_data, 3);
-
-                     if (fourth_octet == -1){
-                         event = tell_about_error(pdu_too_short_error, event, msg, tid);
-                         debug("wap.wtp", 0, "WTP: unpack_datagram; missing fourth octet (invoke)");
-                         msg_dump(msg, 0);
-                         return event;
-                     }
-                     
-                     event = unpack_invoke(msg, tid, first_octet, 
-                                           fourth_octet);
-
-		     return event;
-               break;
-
-               case ACK:
-		    return unpack_ack(msg, tid, first_octet);   
-               break;
-
-	       case ABORT:
-
-                    fourth_octet = octstr_get_char(msg->wdp_datagram.user_data, 3);
-
-                    if (fourth_octet == -1){
-                       event = tell_about_error(pdu_too_short_error, event, msg, tid);
-                       debug("wap.wtp", 0, "WTP: unpack_datagram; missing fourth octet (abort)");
-                       msg_dump(msg, 0);
-                       return event;
-                    }
-
-                    return unpack_abort(msg, tid, first_octet, fourth_octet);
-               break;
-         } /* switch */
-/* Following return is unnecessary but required by the compiler */
-         return NULL;
-#else
-
 	WTP_PDU *pdu;
 	WAPEvent *event;
 	
@@ -302,8 +216,6 @@ WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
 	
 	wap_event_assert(event);
 	return event;
-
-#endif
 }
 
 void wtp_init(void) {
