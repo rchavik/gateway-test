@@ -1,3 +1,28 @@
+2000-10-11  Tuomas Luttinen  <tuo@wapit.com>
+
+	* gw/wml_compiler.c (string_table_apply): Fixed a bug where an extra 
+	string end was added in a case that two (or more) substrings are 
+	replaced with the 2nd (3rd...) being the first to be replaced.
+
+2000-10-11 Aarno Syvänen <syvanen@wapit.cm>
+
+	* gw/wapbox.c: Separate conditions event == NULL and event_is_for_
+	responder in code selecting to which wtp process an incoming 
+	event belongs.
+
+2000-10-11  Peter Gronholm  <peter@wapit.com>
+
+	* gw/control.html: Updated the example file to reflect the new
+	http interface administration commands.
+
+2000-10-11  Kalle Marjola  <rpr@wapit.com>
+
+	* gw/bb_http.c: fixed that query parsing value '0' is not
+	accepted, only '1'
+
+	* doc/userguide/userguide.xml: added notes about sms-service
+	'default'
+
 2000-10-10  Kalle Marjola  <rpr@wapit.com>
 
 	* Typographic fix in userguide.xml.
