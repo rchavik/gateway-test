@@ -94,6 +94,10 @@ WAPEVENT(RcvAbort,
       INTEGER(tid)
       INTEGER(abort_type)
       INTEGER(abort_reason)
+      OCTSTR(client_address)
+      INTEGER(client_port)
+      OCTSTR(server_address)
+      INTEGER(server_port)
       )
 
 WAPEVENT(RcvAck,

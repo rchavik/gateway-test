@@ -103,7 +103,7 @@ static unsigned char deduce_pdu_type(unsigned char octet);
 
 static int protocol_version(unsigned char octet);
 
-static WAPEvent *unpack_ack(long tid, unsigned char octet);
+static WAPEvent *unpack_ack(Msg *msg, long tid, unsigned char octet);
 
 static WAPEvent *unpack_abort(Msg *msg, long tid, unsigned char first_octet, 
                               unsigned char fourth_octet);
@@ -200,6 +200,10 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
 
 	          case RcvAck:
                        tid = event->RcvAck.tid;
+		       src_addr = event->RcvAck.client_address;
+		       src_port = event->RcvAck.client_port;
+		       dst_addr = event->RcvAck.server_address;
+		       dst_port = event->RcvAck.server_port;
                   break;
 
 	          case RcvAbort:
@@ -332,7 +336,7 @@ WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
                break;
 
                case ACK:
-		    return unpack_ack(tid, first_octet);   
+		    return unpack_ack(msg, tid, first_octet);   
                break;
 
 	       case ABORT:
@@ -667,7 +671,7 @@ static int protocol_version(unsigned char octet){
        return octet>>6&3;
 }
 
-static WAPEvent *unpack_ack(long tid, unsigned char octet){
+static WAPEvent *unpack_ack(Msg *msg, long tid, unsigned char octet){
 
       WAPEvent *event = NULL;
       unsigned char this_octet;
@@ -679,6 +683,13 @@ static WAPEvent *unpack_ack(long tid, unsigned char octet){
       event->RcvAck.tid_ok = this_octet>>2&1;
       this_octet = octet;
       event->RcvAck.rid = this_octet&1;
+      
+      event->RcvAck.client_address = 
+      	octstr_duplicate(msg->wdp_datagram.source_address);
+      event->RcvAck.server_address = 
+      	octstr_duplicate(msg->wdp_datagram.destination_address);
+      event->RcvAck.client_port = msg->wdp_datagram.source_port;
+      event->RcvAck.server_port = msg->wdp_datagram.destination_port;
 
       return event;
 }
