@@ -1,4 +1,4 @@
-NEWS about Kannel: Open Source WAP and SMS Gateway version 1.0
+NEWS about Kannel: Open Source WAP and SMS Gateway version 1.0.1
 
 This is a STABLE version. We will maintain it and make bugfix
 releases until the next stable version is released, which will
@@ -7,8 +7,38 @@ be version 1.2.
 Please try it out and report problems to devel@kannel.org (the 
 development mailing list) or bugs@kannel.org (the bug tracking system).
 
-No changes have been made compared to version 0.12.4.  We decided to
-release that version as version 1.0 because we have found no new bugs
-in it.
+Changes since version 1.0:
+
+
+New features:
+
+ * WML compiler: Some versions of libxml are compiled with
+   -DXML_USE_BUFFER_CONTENT, which makes them incompatible with normal
+   versions.  The WML compiler has been fixed to also work with these.
+
+ * User's Guide: New section about using pre-compiled binary packages.
+
+ * User's Guide: Explain that SMS service configurations are selected
+   by the total number of words as well as the keyword.
+
+ * WMLScript compiler avoids generating zero-length functions, so that
+   the result works on more clients.
+
+
+Bugfixes:
+
+ * WML compiler now correctly takes the character set from HTTP headers
+   if it wasn't specified inside the WML file.
+
+ * wapbox: Corrected the status code sent if an HTTP response is too
+   large for the client.  Also, leave the status code alone if it already
+   indicates a different error.
+
+ * CIMD2 driver: Correctly encode u-dieresis in SMS messages.
+
+ * Fixed a possible crash in the old CIMD driver.  
+
+ * Small change to the build scripts to allow compilation on more systems.
+
 
 See ChangeLog for detailed information.
