@@ -232,6 +232,10 @@ WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
 		  	mid = event->TR_Invoke_Res.mid;
 			break;
 
+		  case TR_Result_Req:
+		  	mid = event->TR_Result_Req.mid;
+			break;
+
                   default:
                        debug("wap.wtp", 0, "WTP: machine_find_or_create: unhandled event"); 
                        wap_event_dump(event);
