@@ -1890,3 +1890,17 @@ static int header_is_called(Octstr *header, char *name)
         return 0;
     return strncasecmp(octstr_get_cstr(header), name, colon) == 0;
 }
+
+/*
+ * This function relies on the HTTP_STATUS_* enum values being
+ * chosen to fit this.
+ */
+int http_status_class(int code)
+{
+    int class;
+
+    class = code - (code % 100);
+    if (class < 100 || class >= 600)
+        class = HTTP_STATUS_UNKNOWN;
+    return class;
+}

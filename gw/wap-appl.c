@@ -482,12 +482,19 @@ static void fetch_thread(void *arg) {
 	if (x_wap_tod)
 		add_x_wap_tod(resp_headers);
 
+        /*
+         * If the response is too large to be sent to the client,
+ 	 * suppress it and inform the client.
+         */
 	if (octstr_len(content.body) > client_SDU_size && client_SDU_size > 0) {
-		/* XXX: This is the wrong status.  It says that the
-		 * client sent us a too large entity (for example with
-		 * POST).  There seems to be no way to indicate that the
-		 * response entity is too large. */
-		status = HTTP_REQUEST_ENTITY_TOO_LARGE;
+                /*
+		 * Only change the status if it indicated success.
+		 * If it indicated an error, then that information is
+		 * more useful to the client than our "Bad Gateway" would be.
+		 * The too-large body is probably an error page in html.
+		 */
+		if (http_status_class(status) == HTTP_STATUS_SUCCESSFUL)
+			status = HTTP_BAD_GATEWAY;
 		warning(0, "WSP: Entity at %s too large (size %ld B, limit %lu B)",
 			octstr_get_cstr(url), octstr_len(content.body),
 			client_SDU_size);
