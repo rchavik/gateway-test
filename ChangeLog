@@ -1,3 +1,14 @@
+2001-02-12  Lars Wirzenius  <liw@iki.fi>
+
+        * Makefile.in: Moved -I. to before other -I options (before
+        @CFLAGS@) so that Kannel's config.h is found before any config.h
+        that might be a system header file.
+
+2001-02-07  Kalle Marjola  <rpr@wapit.com>
+
+        * doc/userguide/userguide.xml: made it clearer that sms-service is
+        selected by keyword and number of parameters
+
 2001-02-05  Richard Braakman  <dark@wapit.com>
 
         * gwlib/octstr.c: Fixed off-by-one error in octstr_case_search(),
