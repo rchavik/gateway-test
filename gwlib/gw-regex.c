@@ -69,8 +69,8 @@
 
 #include <ctype.h>
 
-#include "gwlib/gwlib.h"
-#include "regex.h"
+#include "gwlib.h"
+#include "gw-regex.h"
 
 /* 
  * We allow to substitute the POSIX compliant regex routines via PCRE 

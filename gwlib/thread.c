@@ -61,7 +61,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 
 #ifdef MUTEX_STATS

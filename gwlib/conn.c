@@ -79,7 +79,7 @@
 #include <sys/socket.h>
 #include <string.h>
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 #ifdef HAVE_LIBSSL
 #include <openssl/ssl.h>

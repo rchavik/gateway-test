@@ -66,7 +66,7 @@
 #include <time.h>
 
 #include "gwlib/gwlib.h"
-#include "gwlib/regex.h"
+#include "gwlib/gw-regex.h"
 #include "smscconn.h"
 #include "smscconn_p.h"
 #include "bb_smscconn_cb.h"

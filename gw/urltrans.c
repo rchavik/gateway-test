@@ -71,7 +71,7 @@
 #include "urltrans.h"
 #include "gwlib/gwlib.h"
 #include "gw/sms.h"
-#include "gwlib/regex.h"
+#include "gwlib/gw-regex.h"
 
 
 /***********************************************************************

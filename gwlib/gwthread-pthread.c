@@ -66,7 +66,7 @@
 #include <signal.h>
 #include <string.h>
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 #ifdef HAVE_LIBSSL
 #include <openssl/err.h>

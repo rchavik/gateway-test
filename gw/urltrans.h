@@ -84,7 +84,7 @@
 #include "gwlib/gwlib.h"
 #include "msg.h"
 #include "numhash.h"
-#include "gwlib/regex.h"
+#include "gwlib/gw-regex.h"
 
 /*
  * This is the data structure that holds the list of translations. It is

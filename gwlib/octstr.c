@@ -2508,7 +2508,7 @@ void octstr_convert_to_html_entities(Octstr* input)
     octstr_delete(input, i, 1); \
     octstr_insert(input, octstr_imm("&" b ";"), i); \
     i += sizeof(b); break;
-#include "gwlib/html-entities.def"
+#include "html-entities.def"
 #undef ENTITY
         }
     }

@@ -62,7 +62,7 @@
  * Richard Braakman
  */
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 #if HAVE_ICONV_H
 #include <errno.h>

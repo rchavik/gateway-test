@@ -202,7 +202,7 @@
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 34 "wmlscript/wsgram.y"
+#line 43 "wsgram.y"
 typedef union YYSTYPE {
     WsUInt32 integer;
     WsFloat vfloat;

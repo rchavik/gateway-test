@@ -74,7 +74,7 @@
 #ifndef __XMLRPC_H
 #define __XMLRPC_H
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 /*
  * types and structures defined by www.xml-rpc.com

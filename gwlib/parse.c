@@ -60,7 +60,7 @@
  * Richard Braakman
  */
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 struct context
 {

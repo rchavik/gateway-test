@@ -50,8 +50,8 @@
 #endif
 #include <stdio.h>
 
-#include "gwlib/gw_uuid_types.h"
-#include "gwlib/gw_uuid.h"
+#include "gw_uuid_types.h"
+#include "gw_uuid.h"
 
 /*
  * Offset between 15-Oct-1582 and 1-Jan-70

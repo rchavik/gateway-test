@@ -14,7 +14,7 @@ dnl AC_CHECK_VERSION(installed, required, [do-if-success], [do-if-tail])
 dnl
 dnl Written by Stipe Tolj <tolj@wapme-systems.de> 
  
-AC_DEFUN(AC_CHECK_VERSION, 
+AC_DEFUN([AC_CHECK_VERSION], 
 [ 
   dnl split installed version string 
   ac_inst_ver_maj=`echo $1 | sed -e 's/^\(.*\)\..*\..*$/\1/'` 
@@ -149,11 +149,11 @@ AC_TRY_COMPILE([
    )]
 )])
 if test $ac_cv_func_which_gethostname_r -eq 6; then
-  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_6)
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_6, 1, [gethostbyname have 6 arguments])
 elif test $ac_cv_func_which_gethostname_r -eq 5; then
-  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_5)
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_5, 1, [gethostbyname have 5 arguments])
 elif test $ac_cv_func_which_gethostname_r -eq 3; then
-  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_3)
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_3, 1, [gethostbyname have 3 arguments])
 elif test $ac_cv_func_which_gethostname_r -eq 0; then
   ac_cv_func_which_gethostname_r = no
 fi

@@ -70,8 +70,8 @@
 #include <limits.h>
 #include <ctype.h>
 
-#include "gwlib/gwlib.h"
-#include "gwlib/mime.h"
+#include "gwlib.h"
+#include "mime.h"
 
 
 /********************************************************************

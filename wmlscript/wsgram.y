@@ -17,6 +17,15 @@
 #define YYPARSE_PARAM	pctx
 #define YYLEX_PARAM	pctx
 
+#define yyparse ws_yy_parse
+#define yylex ws_yy_lex
+#define yyerror ws_yy_error
+#define yylval ws_yy_lval
+#define yychar ws_yy_char
+#define yydebug ws_yy_debug
+#define yynerrs ws_yy_nerrs
+
+
 /* The required yyerror() function.  This is actually not used but to
    report the internal parser errors.  All other errors are reported
    by using the `wserror.h' functions. */

@@ -62,27 +62,31 @@ dnl
 
 dnl initialization
 
-AC_PREREQ(2.13)
+AC_PREREQ(2.54)
 
-AC_INIT(gw/alt_charsets.h)
+AC_INIT(gwlib/gwlib.h)
 AC_CONFIG_HEADER(gw-config.h)
-AC_SUBST(SHELL)
+dnl AC_SUBST(SHELL)
 AC_CONFIG_AUX_DIR(.)
 AC_SET_TERMINAL_SEQUENCES()
 
-dnl Check gateway version number.
+Check gateway version number.
 VERSION=`head -n 1 VERSION`
 if test "x$VERSION" = "xcvs"; then
-  AC_MSG_CHECKING([cvs checkout date])
-  AC_CVS_DATE(CVS_DATE)
-  AC_MSG_RESULT([$CVS_DATE])
-  VERSION="$VERSION-$CVS_DATE"
+    AC_MSG_CHECKING([cvs checkout date])
+    AC_CVS_DATE(CVS_DATE)
+    AC_MSG_RESULT([$CVS_DATE])
+    VERSION="$VERSION-$CVS_DATE"
 fi
-AC_DEFINE_UNQUOTED(GW_NAME, "Kannel")
-AC_DEFINE_UNQUOTED(GW_VERSION, "$VERSION")
-AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
+AC_DEFINE_UNQUOTED(GW_NAME, "Kannel", [Gateway name])
+AC_DEFINE_UNQUOTED(GW_VERSION, "$VERSION", [Gateway version])
+dnl AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Gateway version])
 AC_SUBST(GW_VERSION)
-AC_SUBST(VERSION)
+dnl AC_SUBST(VERSION)
+AM_INIT_AUTOMAKE(Kannel,$VERSION)
+AC_DISABLE_STATIC
+AC_PROG_LIBTOOL
+AC_SUBST(LIBTOOL_DEPS)
 AC_CONFIG_SECTION([Configuring for Kannel gateway version $VERSION])
 
 dnl Solaris pkgadd support definitions
@@ -97,37 +101,16 @@ dnl Target installation directory for documentation
 AC_SUBST(docdir)
 docdir='${prefix}/share/doc/kannel'
 
+CFLAGS="$CFLAGS -D_GNU_SOURCE"
+
 dnl Checks system type.
 AC_CONFIG_SECTION([Running system checks])
-AC_CANONICAL_HOST
+dnl AC_CANONICAL_HOST
 
 dnl Apply system specific rules.
 dnl Executable extension for systems that need one, i.e. Cygwin
 dnl Set the LIBTOOL to be used to create libs
-EXE_EXT=""
-LIBTOOL="ar rc"
-case "$host" in
-  *-sun-solaris*) 
-    CFLAGS="$CFLAGS -DSunOS=1"
-    ;;
-  *-cygwin*)
-    EXE_EXT=".exe"
-    ;;
-  *apple-darwin*) 
-    CFLAGS="$CFLAGS -DDARWIN=1" 
-    LIBTOOL="libtool -static -o" 
-    ;;
-  *-linux-*)
-    CFLAGS="$CFLAGS -D_XOPEN_SOURCE=600 -D_BSD_SOURCE"
-    LDFLAGS="$LDFLAGS -rdynamic"
-    ;;
-  *-*-openbsd* | *-*-freebsd*)
-    CFLAGS="$CFLAGS -pthread"
-	AC_CHECK_LIB(c_r, pthread_exit, [LIBS="$LIBS -lc_r -lkse"; pthread="yes"])
-    ;;
-esac
-AC_SUBST(EXE_EXT)
-AC_SUBST(LIBTOOL)
+
 
 AC_ARG_WITH(cflags,
 [  --with-cflags=FLAGS     use FLAGS for CFLAGS],
@@ -141,7 +124,6 @@ dnl Checks for programs.
 
 AC_PROG_CC
 AC_PROG_INSTALL
-AC_PROG_RANLIB
 AC_PROG_YACC
 AC_PROG_LEX
 AC_PATH_PROG(CONVERT, convert)
@@ -167,8 +149,8 @@ dnl Checks for libraries.
 AC_CHECK_LIB(m, log)
 AC_CHECK_LIB(socket, accept)
 AC_CHECK_LIB(nsl, inet_ntoa)
-AC_CHECK_LIB(resolv, inet_ntop)
-AC_CHECK_LIB(bind, inet_ntop)
+dnl AC_CHECK_LIB(resolv, inet_ntop)
+dnl AC_CHECK_LIB(bind, inet_ntop)
 if test -z "$pthread"; then
     AC_CHECK_LIB(pthread, pthread_exit, [LIBS="$LIBS -lpthread"])
 fi
@@ -184,16 +166,16 @@ AC_CHECK_HEADERS(sys/socket.h sys/sockio.h net/if.h netinet/in.h)
 dnl Checks for typedefs, structures, and compiler characteristics.
 
 AC_TRY_COMPILE(, [char *func = __FUNCTION__;], 
-    	       AC_DEFINE(HAVE___FUNCTION__))
+    	       AC_DEFINE(HAVE___FUNCTION__, 1,[Do we have __FUNCTION__]))
 AC_TRY_COMPILE(, [char *func = __func__;], 
-    	       AC_DEFINE(HAVE___FUNC__))
+    	       AC_DEFINE(HAVE___FUNC__, 1,[Do we have __func__]))
 
 
 dnl Checks for library functions.
 
 AC_CHECK_FUNCS(gettimeofday select socket strdup getopt_long localtime_r gmtime_r backtrace srandom)
-AC_CHECK_FUNC(getopt, , LIBOBJS="$LIBOBJS utils/attgetopt.o")
-AC_SUBST(LIBOBJS)
+AC_CHECK_FUNC(getopt, [ true; ] , [ AC_LIBOBJ="$AC_LIBOBJ utils/attgetopt" ])
+
 
 dnl Check if we have reentrant gethostbyname and which one
 AC_CHECK_FUNC(gethostbyname_r, [ AC_FUNC_WHICH_GETHOSTBYNAME_R ], [
@@ -242,7 +224,7 @@ dnl POSIX regular expression check
 
 AC_CHECK_HEADERS(regex.h, [
   AC_CHECK_FUNC(regcomp, [ 
-    AC_DEFINE(HAVE_REGEX)
+    AC_DEFINE(HAVE_REGEX, 1, [Do we have REGEX])
     has_posix_regex=1
   ])
 ])
@@ -287,7 +269,7 @@ pthread_spin_init(&lock, 0);
 pthread_spin_lock(&lock);
 pthread_spin_unlock(&lock);
 pthread_spin_destroy(&lock);
-], [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_PTHREAD_SPINLOCK_T)], AC_MSG_RESULT(no))
+], [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_PTHREAD_SPINLOCK_T, 1,[Do we have pthread_spinlock])], AC_MSG_RESULT(no));
 
 dnl checking pthread_rwlock support
 AC_MSG_CHECKING([for pthread_rwlock support])
@@ -299,7 +281,7 @@ pthread_rwlock_unlock(&lock);
 pthread_rwlock_wrlock(&lock);
 pthread_rwlock_unlock(&lock);
 pthread_rwlock_destroy(&lock);
-], [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_PTHREAD_RWLOCK)], AC_MSG_RESULT(no), [
+], [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_PTHREAD_RWLOCK, 1, [Do we have pthread_rwlock])], AC_MSG_RESULT(no), [
 AC_MSG_RESULT(Cross compiling - assuming suuported) ; AC_DEFINE(HAVE_PTHREAD_RWLOCK)])
 
 dnl checking for native semaphore support
@@ -319,7 +301,7 @@ int main(void) {
     sem_destroy(&s);
     return 0;
 }
-], [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_SEMAPHORE)], AC_MSG_RESULT(no), [
+], [AC_MSG_RESULT(yes); AC_DEFINE(HAVE_SEMAPHORE, 1, [Do we have semaphores])], AC_MSG_RESULT(no), [
 AC_MSG_RESULT(Cross compiling - assuming suuported) ; AC_DEFINE(HAVE_SEMAPHORE)])
 
 dnl Check if we have libxml2 installed and which version it is.
@@ -375,8 +357,8 @@ AC_ARG_ENABLE(pcre,
       fi        
       AC_CHECK_HEADERS(pcre.h)
       AC_CHECK_FUNCS(pcre_compile)
-      AC_DEFINE(HAVE_PCRE)
-      AC_DEFINE_UNQUOTED(LIBPCRE_VERSION, "$pcre_version")
+      AC_DEFINE(HAVE_PCRE, 1,[Do we have PCRE])
+      AC_DEFINE_UNQUOTED(LIBPCRE_VERSION, "$pcre_version", [Pcre version])
       PCRE="yes"
     fi
   fi
@@ -478,6 +460,8 @@ no-docs) AC_MSG_RESULT(Not building documentation.) ;;
 docs) AC_MSG_RESULT(Documentation will be built as well.) ;;
 esac
 
+AM_CONDITIONAL(BUILD_ALLDOCS, test x$DOCSTARGET = xdocs)
+
 dnl Implement --enable-drafts option.
 
 AC_SUBST(DOCDRAFTS)
@@ -529,7 +513,7 @@ if test "x$SUFFIX" != "x" ; then
   AC_MSG_RESULT($SUFFIX)
 fi
 
-AC_DEFINE_UNQUOTED(SUFFIX, "$SUFFIX")
+AC_DEFINE_UNQUOTED(SUFFIX, "$SUFFIX", [suffix])
 AC_SUBST(SUFFIX)
 
 
@@ -564,13 +548,13 @@ AC_MSG_CHECKING(which malloc to use)
 AC_ARG_WITH(malloc,
 [  --with-malloc           select malloc wrapper to use: native/check/slow [native]], [
   case "$withval" in
-  native) AC_DEFINE(USE_GWMEM_NATIVE)
+  native) AC_DEFINE(USE_GWMEM_NATIVE, 1, [Use native malloc])
           AC_MSG_RESULT(native malloc)
           ;;
-  check) AC_DEFINE(USE_GWMEM_CHECK)
+  check) AC_DEFINE(USE_GWMEM_CHECK, 1, [Use checking malloc])
          AC_MSG_RESULT(checking malloc)
          ;;
-  slow) AC_DEFINE(USE_GWMEM_SLOW)
+  slow) AC_DEFINE(USE_GWMEM_SLOW, 1, [Use slow malloc])
         AC_MSG_RESULT(slow malloc)
 	;;
   *) echo "Unknown malloc wrapper $withval. Oops."; exit 1 ;;
@@ -597,7 +581,7 @@ AC_ARG_ENABLE(assertions,
   if test "$enableval" = "no"
   then
     echo disabling assertion checking
-    AC_DEFINE(NO_GWASSERT)
+    AC_DEFINE(NO_GWASSERT, 1, [No asserts])
   fi
 ], [
   if test "$assertiondefault" = "no"
@@ -636,7 +620,7 @@ AC_ARG_ENABLE(debug,
   if test -n "$GCC"; then
     CFLAGS="$CFLAGS -Wall"
   fi
-  AC_DEFINE(WS_DEBUG)
+  AC_DEFINE(WS_DEBUG, 1, [WMLScript compiler debugging])
 ])
 
 
@@ -646,7 +630,7 @@ AC_ARG_ENABLE(localtime,
 [  --enable-localtime	  log file time stamps in local time, not GMT [enabled]], [
   if test "$enableval" = yes; then
       echo enabling local time
-      AC_DEFINE(LOG_TIMESTAMP_LOCALTIME)
+      AC_DEFINE(LOG_TIMESTAMP_LOCALTIME, 1, [enabling local time])
   fi
 ],[
   echo enabling local time
@@ -659,7 +643,7 @@ dnl --enable-mutex-stats option.
 AC_ARG_ENABLE(mutex-stats,
 [  --enable-mutex-stats    produce information about lock contention], [
   if test "$enableval" = yes; then
-      AC_DEFINE(MUTEX_STATS)
+      AC_DEFINE(MUTEX_STATS, 1, [produce information about lock contention])
   fi
 ])
 
@@ -670,7 +654,7 @@ AC_ARG_ENABLE(cookies,
 [  --disable-cookies        disable cookie support for WSP [enable]], [
   if test "$enableval" = yes; then
     echo enabling cookies
-    AC_DEFINE(ENABLE_COOKIES)
+    AC_DEFINE(ENABLE_COOKIES, 1, [Enable cookies])
   else
     echo disabling cookies
   fi
@@ -698,7 +682,7 @@ AC_ARG_ENABLE(wap,
   if test "$enableval" = "no"
   then
     echo disabling WAP gateway parts in bearerbox
-    AC_DEFINE(NO_WAP)
+    AC_DEFINE(NO_WAP, 1, [disabling WAP gateway parts in bearerbox])
   fi
 ])
 
@@ -707,7 +691,7 @@ AC_ARG_ENABLE(sms,
   if test "$enableval" = "no"
   then
     echo disabling SMS gateway parts in bearerbox
-    AC_DEFINE(NO_SMS)
+    AC_DEFINE(NO_SMS, 1, [disabling SMS gateway parts in bearerbox])
   fi
 ])
 
@@ -718,9 +702,8 @@ AC_CONFIG_SECTION([Configuring OpenSSL support])
 AC_ARG_WITH(ssl,
 [  --with-ssl[=DIR]          where to look for OpenSSL libs and header files
                           DIR points to the installation [/usr/local/ssl]],
-[ if test -d "$withval"; then
-    ssllib="$withval/lib";
-    sslinc="$withval/include"
+[ if test -d "$withval" && test -d "$withval/lib" && test -d "$withval/include" ; then
+    sslbase=$withval
   else
     AC_MSG_ERROR(Unable to find OpenSSL libs and/or directories at $withval)
   fi
@@ -744,78 +727,70 @@ AC_ARG_ENABLE(ssl,
 
 if test "$ssl" = "yes" ; then
   dnl test only if --with-ssl has not been used
-  if test "x$ssllib" = "x" && test "x$sslinc" = "x"; then
-    for loc in /usr/lib /usr/local/ssl/lib /usr/local/openssl/lib; do
-      if test -f "$loc/libssl.a"; then
-        ssllib="$loc"
-      fi
-    done
-    for loc in /usr/include/ssl /usr/include/openssl /usr/local/ssl/include \
-               /usr/local/openssl/include; do
-      if test -d "$loc"; then
-        sslinc="$loc"
-      fi
-    done
+   if test "x$sslbase" = "x" ; then
+     for loc in /usr /usr/local /usr/local/ssl /usr/local/openssl; do
+       if test -d "$loc/lib" && test -d "$loc/include" ; then
+         sslbase="$loc"
+       fi
+     done
+    fi
+    AC_MSG_RESULT(trying $sslbase)
   fi
-  AC_MSG_RESULT(trying $ssllib $sslinc)
-fi
-
-
 dnl Implement the SSL library checking routine.
 dnl This will define HAVE_LIBSSL in gw-config.h
 
-if test "x$ssllib" != "x" && test "x$sslinc" != "x"; then
-  CFLAGS="$CFLAGS -I$sslinc"
-  LIBS="$LIBS -L$ssllib"
-
-  AC_PATH_PROG(OPENSSL, openssl, no)
-  if test "$OPENSSL" = "yes"; then
-    AC_MSG_CHECKING([openssl version])
-    openssl_version=`$OPENSSL version | awk '{print $2}'`
-    AC_MSG_RESULT([$openssl_version])
-  fi
-  AC_CHECK_LIB(crypto, CRYPTO_lock,
-  [ LIBS="$LIBS -lcrypto"
-    AC_CHECK_LIB(ssl, SSL_library_init,
-    [ AC_CHECK_LIB(ssl, SSL_connect)
-      AC_CHECK_HEADERS(openssl/x509.h openssl/rsa.h openssl/crypto.h \
-                       openssl/pem.h openssl/ssl.h openssl/err.h)
-      AC_MSG_CHECKING(whether the OpenSSL library is multithread-enabled)
-      AC_TRY_RUN([
-        #define OPENSSL_THREAD_DEFINES
-        #include <openssl/opensslconf.h>
-        int main(void) {
-        #if defined(THREADS)
-          exit(0);
-        #elif defined(OPENSSL_THREADS)
-          exit(0);
-        #else
-          exit(1);
-        #endif
-        }
-      ], [
-        AC_MSG_RESULT(yes)
-        AC_DEFINE(HAVE_LIBSSL)
-        LIBS="$LIBS -lssl"
-        AC_MSG_CHECKING([whether to compile with SSL support])
-	AC_MSG_RESULT(yes)
-      ], [
-        AC_ARG_ENABLE(ssl-thread-test,
-        [  --disable-ssl-thread-test  disable the multithread test for the OpenSSL library
-                          this will force to continue even if the test fails],
-        [ if test "$enableval" = no ; then
-            AC_MSG_RESULT([no, continue forced])
-          fi
+  if test "x$sslbase" != "x" ; then
+    CFLAGS="$CFLAGS -I$sslbase/include"
+    LIBS="$LIBS -L$sslbase/lib"
+    AC_PATH_PROG(OPENSSL, openssl, no, [$sslbase/bin:$PATH])
+    if test "$OPENSSL" != "no"; then
+      AC_MSG_CHECKING([openssl version])
+      openssl_version=`$OPENSSL version | awk '{print $2}'`
+      AC_MSG_RESULT([$openssl_version])
+    fi
+    AC_CHECK_LIB(crypto, CRYPTO_lock,
+    [ LIBS="$LIBS -lcrypto"
+      AC_CHECK_LIB(ssl, SSL_library_init,
+      [ AC_CHECK_LIB(ssl, SSL_connect)
+        AC_CHECK_HEADERS(openssl/x509.h openssl/rsa.h openssl/crypto.h \
+                         openssl/pem.h openssl/ssl.h openssl/err.h)
+        AC_MSG_CHECKING(whether the OpenSSL library is multithread-enabled)
+        AC_TRY_RUN([
+          #define OPENSSL_THREAD_DEFINES
+          #include <openssl/opensslconf.h>
+          int main(void) {
+          #if defined(THREADS)
+            exit(0);
+          #elif defined(OPENSSL_THREADS)
+            exit(0);
+          #else
+            exit(1);
+          #endif
+          }
         ], [
-          AC_MSG_RESULT(no)
-          AC_MSG_ERROR(Either get a multithread-enabled SSL or configure with --disable-ssl)
-        ])
-      ], echo "Cross-compiling; make sure your SSL library is multithread-enabled"
-      )
+          AC_MSG_RESULT(yes)
+          AC_DEFINE(HAVE_LIBSSL, 1, [Do we have libssl])
+          LIBS="$LIBS -lssl"
+          AC_MSG_CHECKING([whether to compile with SSL support])
+  	AC_MSG_RESULT(yes)
+        ], [
+          AC_ARG_ENABLE(ssl-thread-test,
+          [  --disable-ssl-thread-test  disable the multithread test for the OpenSSL library
+                            this will force to continue even if the test fails],
+          [ if test "$enableval" = no ; then
+              AC_MSG_RESULT([no, continue forced])
+            fi
+          ], [
+            AC_MSG_RESULT(no)
+            AC_MSG_ERROR(Either get a multithread-enabled SSL or configure with --disable-ssl)
+          ])
+        ], echo "Cross-compiling; make sure your SSL library is multithread-enabled"
+        )
+      ])
     ])
-  ])
-fi
+  fi
 
+dnl CHECK_SSL
 
 AC_CONFIG_SECTION([Configuring DB support])
 
@@ -892,7 +867,7 @@ else
     fi
   fi
   AC_CHECK_HEADERS(mysql/mysql.h mysql/mysql_version.h)
-  AC_DEFINE(HAVE_MYSQL)
+  AC_DEFINE(HAVE_MYSQL, 1, [Do we have mysql])
   AC_MSG_CHECKING([whether to compile with MySQL support])
   AC_MSG_RESULT(yes)
   MYSQL="yes"
@@ -924,8 +899,8 @@ AC_ARG_WITH(sdb,
       AC_CHECK_HEADERS(sdb.h)
       dnl AC_CHECK_LIB(sdb, sdb_init, [LIBS="`$SDB_CONFIG --libs`"]) 
       AC_CHECK_FUNCS(sdb_init)
-      AC_DEFINE(HAVE_SDB)
-      AC_DEFINE_UNQUOTED(LIBSDB_VERSION, "$sdb_version")
+      AC_DEFINE(HAVE_SDB, 1, [do we use libsdb])
+      AC_DEFINE_UNQUOTED(LIBSDB_VERSION, "$sdb_version", [libsdb version])
       SDB="yes"
     fi
   fi
@@ -951,7 +926,7 @@ AC_ARG_WITH(sqlite,
     AC_MSG_CHECKING([sqlite version])
     sqlite_version=`$SQLITE -version`
     AC_MSG_RESULT([$sqlite_version])
-    AC_DEFINE(HAVE_SQLITE)
+    AC_DEFINE(HAVE_SQLITE, 1, [Do we use sqlite])
     SQLITE="yes"
   fi
 ],[
@@ -999,7 +974,7 @@ AC_ARG_WITH(oracle,
                 AC_CHECK_LIB(wtc9,wtcstu,[ LIBS="$LIBS -lwtc9" ],AC_MSG_ERROR([Oracle libwtc9.so not found]))
         fi
 
-    AC_DEFINE(HAVE_ORACLE)
+    AC_DEFINE(HAVE_ORACLE, 1, [Do we have oracle])
     AC_MSG_CHECKING([whether to compile with Oracle support])
     AC_MSG_RESULT(yes)
 ],
@@ -1070,7 +1045,7 @@ else
 
   AC_CHECK_HEADERS(postgresql/libpq-fe.h)
   AC_CHECK_LIB(pq, PQconnectdb, [])
-  AC_DEFINE(HAVE_PGSQL)
+  AC_DEFINE(HAVE_PGSQL, 1, [Do we have PGSQL])
   AC_MSG_CHECKING([whether to compile with PostgreSQL support])
   AC_MSG_RESULT(yes)
   PGSQL="yes"
@@ -1095,7 +1070,7 @@ AC_ARG_WITH(wtls,
 	LIBS="$LIBS -L/usr/local/ssl/lib -lcrypto"
     AC_CHECK_LIB(crypto, RSA_new,
     [ AC_CHECK_HEADERS(openssl/objects.h openssl/rc5.h, 
-        AC_DEFINE(HAVE_WTLS_OPENSSL),
+        AC_DEFINE(HAVE_WTLS_OPENSSL, 1, [Do we have wtls]),
         AC_MSG_WARN(OpenSSL installation seems to lack RC5 algorithm!)
       )
 	])
@@ -1111,10 +1086,19 @@ AC_ARG_WITH(wtls,
 ])
 
 
+AH_VERBATIM([PRINTFLIKE], [
+/* If we're using GCC, we can get it to check format function arguments. */
+#ifdef __GNUC__
+    #define PRINTFLIKE(a,b) __attribute__((format(printf, a, b)))
+#else
+    #define PRINTFLIKE(a, b)
+#endif
+])
+
 dnl Final Output
 
 AC_CONFIG_SECTION([Generating output files]) 
-AC_OUTPUT(gwlib/gw_uuid_types.h Makefile)
+AC_OUTPUT(gwlib/gw_uuid_types.h Makefile gwlib/Makefile wmlscript/Makefile radius/Makefile wap/Makefile gw/Makefile benchmarks/Makefile utils/Makefile checks/Makefile doc/Makefile test/Makefile)
 
 
 dnl LICENSE notice

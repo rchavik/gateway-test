@@ -55,22 +55,103 @@
  */ 
 
 /*
- * semaphore.h - declarations of semaphores
+ * semaphore.c - implementation of semaphores
  *
  * Lars Wirzenius
+ * Alexander Malysh <amalysh at kannel.org>, 2004
  */
 
 
-#ifndef SEMAPHORE_H
-#define SEMAPHORE_H
+#include "gwlib.h"
 
-
-typedef struct Semaphore Semaphore;
-
-Semaphore *semaphore_create(long n);
-void semaphore_destroy(Semaphore *semaphore);
-void semaphore_up(Semaphore *semaphore);
-void semaphore_down(Semaphore *semaphore);
-long semaphore_getvalue(Semaphore *semaphore);
-
+#ifdef HAVE_SEMAPHORE
+#include <semaphore.h>
+#include <errno.h>
 #endif
+
+struct Semaphore {
+#ifdef HAVE_SEMAPHORE
+    sem_t sem;
+#else
+    List *list;
+#endif
+};
+
+
+Semaphore *semaphore_create(long n)
+{
+    Semaphore *semaphore;
+#ifndef HAVE_SEMAPHORE
+    static char item;
+#endif
+    
+    semaphore = gw_malloc(sizeof(*semaphore));
+
+#ifdef HAVE_SEMAPHORE
+    if (sem_init(&semaphore->sem, 0, (unsigned int) n) != 0)
+        panic(errno, "Couldnot initialize semaphore.");
+#else
+    semaphore->list = list_create();
+    list_add_producer(semaphore->list);
+    while (n-- > 0)
+	list_produce(semaphore->list, &item);
+#endif
+
+    return semaphore;
+}
+
+
+void semaphore_destroy(Semaphore *semaphore)
+{
+    if (semaphore != NULL) {
+#ifdef HAVE_SEMAPHORE
+        if (sem_destroy(&semaphore->sem) != 0)
+            panic(errno, "Destroing semaphore while some threads are waiting.");
+#else
+	list_destroy(semaphore->list, NULL);
+#endif
+	gw_free(semaphore);
+    }
+}
+
+
+void semaphore_up(Semaphore *semaphore)
+{
+#ifndef HAVE_SEMAPHORE
+    static char item;
+    gw_assert(semaphore != NULL);
+    list_produce(semaphore->list, &item);
+#else
+    gw_assert(semaphore != NULL);
+    if (sem_post(&semaphore->sem) != 0)
+        error(errno, "Value for semaphore is out of range.");
+#endif
+}
+
+
+void semaphore_down(Semaphore *semaphore)
+{
+    gw_assert(semaphore != NULL);
+#ifdef HAVE_SEMAPHORE
+    sem_wait(&semaphore->sem);
+#else
+    list_consume(semaphore->list);
+#endif
+}
+
+
+long semaphore_getvalue(Semaphore *semaphore)
+{
+    gw_assert(semaphore != NULL);
+#ifdef HAVE_SEMAPHORE
+    {
+        int val;
+        if (sem_getvalue(&semaphore->sem, &val) != 0)
+            panic(errno, "Could not get semaphore value.");
+        return val;
+    }
+#else
+    return list_len(semaphore->list);
+#endif
+}
+

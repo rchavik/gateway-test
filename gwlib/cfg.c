@@ -61,7 +61,7 @@
  */
 
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 /* for include dir */
 #include <sys/types.h>

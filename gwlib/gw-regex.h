@@ -67,8 +67,8 @@
  * Stipe Tolj <tolj@wapme-systems.de>
  */
 
-#ifndef REGEX_H
-#define REGEX_H
+#ifndef GWREGEX_H
+#define GWREGEX_H
 
 #ifdef HAVE_REGEX
 # include <regex.h>

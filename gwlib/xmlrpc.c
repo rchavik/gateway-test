@@ -70,8 +70,8 @@
 #include <libxml/debugXML.h>
 #include <libxml/encoding.h>
 
-#include "gwlib/gwlib.h"
-#include "gwlib/xmlrpc.h"
+#include "gwlib.h"
+#include "xmlrpc.h"
 
 #define XR_ENABLE_EMPTY_STRING_VALUES
 

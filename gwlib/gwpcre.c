@@ -69,8 +69,8 @@
 
 #include <ctype.h>
 
-#include "gwlib/gwlib.h"
-#include "pcre.h"
+#include "gwlib.h"
+#include "gwpcre.h"
 
 #ifdef HAVE_PCRE
 

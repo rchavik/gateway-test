@@ -61,7 +61,7 @@
 
 #include <stdio.h>
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
  
 #if (HAVE_WTLS_OPENSSL)
  

@@ -62,7 +62,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 struct FDSet
 {

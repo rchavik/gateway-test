@@ -127,8 +127,8 @@
 #ifndef HTTP_H
 #define HTTP_H
 
-#include "gwlib/list.h"
-#include "gwlib/octstr.h"
+#include "list.h"
+#include "octstr.h"
 
 
 /*

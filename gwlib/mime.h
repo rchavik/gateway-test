@@ -88,7 +88,7 @@
 #ifndef MIME_H
 #define MIME_H
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 
 /* Define an generic MIME entity structure to be 

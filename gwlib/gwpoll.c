@@ -56,7 +56,7 @@
 
 /* gwpoll.c - implement poll() for systems that don't have it */
 
-#include "gwlib/gwlib.h"
+#include "gwlib.h"
 
 #ifndef HAVE_SYS_POLL_H
 

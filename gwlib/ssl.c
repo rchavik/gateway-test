@@ -68,7 +68,7 @@
  * for Kannel Project and Wapme Systems AG 
  */ 
  
-#include "gwlib/gwlib.h" 
+#include "gwlib.h" 
  
 #ifdef HAVE_LIBSSL 
   
