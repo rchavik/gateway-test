@@ -9,6 +9,7 @@ kannel (1.0-1) unstable; urgency=low
     outdated.)
   * Don't create /home/kannel, use --no-create-home with adduser.
     Closes: #80617.
+  * Removed the --group option to adduser. The group isn't being used.
   * postinst: Use user:group instead of user.group for chown. Also give
     error message if kannel user and group creation fails.
 
