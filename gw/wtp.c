@@ -110,19 +110,12 @@ static void wtp_machine_destroy(WTPMachine *sm);
  */
 
 static Segments *segment_lists_create_empty(void);
-#ifdef todo
-static void segment_lists_dump(Segments *segments);
-#endif
 static void segment_lists_destroy(Segments *segments);
 
 /*
  * and segments
  */
 static WTPSegment *create_segment(void);
-
-#if 0
-static void segment_dump(WTPSegment *segment);
-#endif
 
 static void segment_destroy(WTPSegment *segment);
 
@@ -142,13 +135,6 @@ static WTPSegment *make_missing_segments_list(Msg *msg,
  */
 
 static unsigned char *name_state(int name);
-
-/*
- * Really removes a WTP state machine. Used only by the garbage collection. 
- */
-#if 0
-static void destroy_machine(WTPMachine *machine, WTPMachine *previous);
-#endif
 
 /*
  * Find the WTPMachine from the global list of WTPMachine structures that
@@ -171,9 +157,6 @@ static void append_to_event_queue(WTPMachine *machine, WAPEvent *event);
 static WAPEvent *remove_from_event_queue(WTPMachine *machine);
 
 static long deduce_tid(Msg *msg);
-#ifdef todo
-static int message_header_fixed(unsigned char octet);
-#endif
 static unsigned char deduce_pdu_type(unsigned char octet);
 
 static int message_type(unsigned char octet);
@@ -194,9 +177,6 @@ static Octstr *unpack_segmented_invoke(Msg *msg, WTPSegment *segment, long tid,
 static WTPSegment *unpack_negative_ack(Msg *msg, unsigned char octet);
 
 static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid);
-#ifdef todo
-static int tpi_short(unsigned char octet);
-#endif
 static WAPEvent *unpack_invoke_flags(WAPEvent *event, Msg *msg, long tid, 
        unsigned char first_octet, unsigned char fourth_octet);
 
@@ -230,18 +210,6 @@ void wtp_machine_mark_unused(WTPMachine *machine) {
  * eventually start again).
  */
 void wtp_machines_list_clear(void){
-#if 0
-        long remove_pat;
-
-        remove_pat = 0;
-
-        if (list_len(machines) == 0){
-           info(0, "WTP: machines_list_clear: list is empty");
-           return;
-        }
-
-        list_delete_all(machines, remove_pat, machine_not_in_use);
-#endif
 } 
 
 /*
@@ -295,10 +263,19 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
 	  long src_port, dst_port;
 
 	  tid = -1;
+	  src_addr = NULL;
+	  dst_addr = NULL;
+	  src_port = -1;
+	  dst_port = -1;
+
           switch (event->type){
 
 	          case RcvInvoke:
                        tid = event->RcvInvoke.tid;
+		       src_addr = event->RcvInvoke.client_address;
+		       src_port = event->RcvInvoke.client_port;
+		       dst_addr = event->RcvInvoke.server_address;
+		       dst_port = event->RcvInvoke.server_port;
                   break;
 
 	          case RcvAck:
@@ -320,10 +297,12 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
                   break;
 	   }
 
-	   src_addr = msg->wdp_datagram.source_address;
-	   dst_addr = msg->wdp_datagram.destination_address;
-	   src_port = msg->wdp_datagram.source_port;
-	   dst_port = msg->wdp_datagram.destination_port;
+	   if (src_addr == NULL) {
+		   src_addr = msg->wdp_datagram.source_address;
+		   dst_addr = msg->wdp_datagram.destination_address;
+		   src_port = msg->wdp_datagram.source_port;
+		   dst_port = msg->wdp_datagram.destination_port;
+	   }
 
            machine = wtp_machine_find(src_addr, src_port, dst_addr, dst_port,
                     		tid);
@@ -645,9 +624,6 @@ static WTPMachine *wtp_machine_find(Octstr *source_address, long source_port,
 	pat.tid = tid;
 	
 	m = list_search(machines, &pat, is_wanted_machine);
-#if 0
-	debug("wap.wtp", 0, "WTP: wtp_machine_find: %p", (void *) m);
-#endif
 	return m;
 }
 
@@ -735,25 +711,7 @@ static Segments *segment_lists_create_empty(void){
 
        return segments;
 }
-#ifdef todo
-static void segment_lists_dump(Segments *segments){
 
-       debug("wap.wtp", 0, "segments list at %p", (void *) segments->list);
-       debug("wap.wtp", 0, "ackd segments list at %p", (void *) segments->ackd); 
-       debug("wap.wtp", 0, "missing segments list at %p", (void *) segments->missing); 
-       debug("wap.wtp", 0, "first segment was");
-       segment_dump(segments->first);         
-       debug("wap.wtp", 0, "event to be added");
-       wap_event_dump(segments->event);                   
-       debug("wap.wtp", 0, "have we send a negative acknowledgement %d", segments->negative_ack_sent); 
-       if (mutex_try_lock(segments->lock) == -1)
-           debug("wap.wtp", 0, "segments list locked");
-       else {
-           debug("wap.wtp", 0, "segments list unlocked"); 
-           mutex_unlock(segments->lock);
-       }
-}
-#endif
 static void segment_lists_destroy(Segments *segments){
 
        segment_destroy(segments->list);   
@@ -778,18 +736,6 @@ static WTPSegment *create_segment(void){
 
        return segment;
 }
-
-#if 0
-static void segment_dump(WTPSegment *segment){
-
-       debug("wap.wtp", 0, "WTP: segment was:");
-       debug("wap.wtp", 0, "tid was: %ld", segment->tid);
-       debug("wap.wtp", 0, "psn was: %d", segment->packet_sequence_number);
-       debug("wap.wtp", 0, "segment itself was:");
-       octstr_dump(segment->data, 1);
-       debug("wap.wtp", 0, "WTP: segment dump ends");
-}
-#endif
 
 static void segment_destroy(WTPSegment *segment){
 
@@ -885,13 +831,6 @@ static long deduce_tid(Msg *msg){
 
        return tid;
 }
-
-#ifdef next
-static int message_header_fixed(unsigned char octet){
-
-       return !(octet>>7); 
-}
-#endif
 
 static unsigned char deduce_pdu_type(unsigned char octet){
 
@@ -1005,18 +944,7 @@ WAPEvent *unpack_invoke(Msg *msg, WTPSegment *segments_list, long tid,
  
          switch (message_type(first_octet)) {
          
-	        case group_trailer_segment:
-                     debug("wap.wtp", 0, "WTP: Got a segmented message");
-                     msg_dump(msg, 0);
-                     segments_list = add_segment_to_message(tid, 
-                                     msg->wdp_datagram.user_data, 0);
-                     return NULL;
-	        break;
-
 	        case  single_message:
-#if 0
-                      debug("wap.wtp", 0, "WTP: Got a single message");
-#endif
                       event->RcvInvoke.user_data = octstr_duplicate(
                                                    msg->wdp_datagram.user_data); 
                       return event;
@@ -1191,12 +1119,6 @@ static WTPSegment *unpack_negative_ack(Msg *msg, unsigned char fourth_octet){
        return missing_segments;
 }
 
-#ifdef next
-static int tpi_short(unsigned char octet){
-       
-       return octet>>2&1;
-}
-#endif
 
 static WAPEvent *unpack_invoke_flags(WAPEvent *event, Msg *msg, long tid, 
                 unsigned char first_octet, unsigned char fourth_octet){
@@ -1363,39 +1285,3 @@ static WTPSegment *make_missing_segments_list(Msg *msg,
 
        return missing_segments;
 }
-
-#if 0
-static int machine_not_in_use(void *a, void *b){
-
-	WTPMachine *machine;
-        long remove_pat;
-	
-	machine = a;
-        remove_pat = b;
-        return machine.in_use == remove_pat;
-}
-
-/*
- * Really removes a WTP state machine. Used only by the garbage collection. 
- */
-static void destroy_machine(WTPMachine *machine, WTPMachine *previous){
-
-     #define INTEGER(name)
-     #define ENUM(name)  
-     #define MSG(name) msg_destroy(machine->name)
-     #define WSP_EVENT(name) wsp_event_destroy(machine->name)  
-     #define OCTSTR(name) octstr_destroy(machine->name)
-     #define TIMER(name) wtp_timer_destroy(machine->name)
-     #define MUTEX(name) mutex_destroy(machine->name)
-     #define NEXT(name)
-     #define MACHINE(field) field
-     #define LIST(name) if (machine->name != NULL) \
-             error(0, "WTP: machine_destroy: Event queue was not empty")
-     #include "wtp_machine-decl.h"
-
-     gw_free(machine);
-
-     return;
-}
-#endif
-/**********************************************************************************/

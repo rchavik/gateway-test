@@ -84,6 +84,10 @@ WAPEVENT(RcvInvoke,
       INTEGER(up_flag)
       INTEGER(exit_info_present)
       INTEGER(no_cache_supported)
+      OCTSTR(client_address)
+      INTEGER(client_port)
+      OCTSTR(server_address)
+      INTEGER(server_port)
       )
 
 WAPEVENT(RcvAbort,
