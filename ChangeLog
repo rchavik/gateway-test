@@ -7,6 +7,11 @@
 
         * gw/smsc_cimd.c: Fixed a possible NULL reference.
 
+2001-01-19  Tuomas Luttinen  <tuo@wapit.com>
+
+        * gw/wml_compiler.c: Added function set_charset to fix bug with 
+        the character set read from the http-headers.
+
 2001-01-12  Tuomas Luttinen  <tuo@wapit.com>
 
         * gw/wml_compiler.c: Now compiler can handle a libxml compiled with 
