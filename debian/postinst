@@ -16,13 +16,34 @@ then
     chown kannel.root /var/log/kannel
 fi
 
+# /var/log/kannel contains potentially sensitive information, such as
+# people's SMS messages. It must not be readable by the world.
+
+chmod 0700 /var/log/kannel
+
+# Set the ownership of /etc/kannel as well. The Kannel config files often
+# contain passwords, so they should not be readable. The permissions in
+# the .deb are already set to 0700, but set them to that just in case
+# someone is upgrading from an old version with different permissions.
+
+chown kannel.root /etc/kannel
+chmod 0700 /etc/kannel
+
 # Update rc.d links.
 
 update-rc.d kannel defaults >/dev/null
+
+# Create /var/run/kannel for Kannel pid files, which are created by
+# user kannel, not user root.
+
+mkdir -p /var/run/kannel
+chown kannel.root /var/run/kannel
 
 # Start Kannel.
 # XXX we *should* check that which run-level we're in and only start
 # Kannel if /etc/rcX.d/S??kannel exists. I don't know how to figure out
 # the current run-level, though.
+# XXX Oops, filerc means that we means that we can't check the link.
+# XXX Current run level can be received via runlevel(8).
 
 /etc/init.d/kannel start

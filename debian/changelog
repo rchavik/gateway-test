@@ -1,3 +1,19 @@
+kannel (0.12.3-1) unstable; urgency=low
+
+  * New upstream version 0.12.3. (And 0.12.2, but I didn't have the time
+    to package that.)
+  * Changes to Debian packaging:
+  * PID files are stored in /var/run/kannel and start-stop-daemon --chuid is 
+    used instead of su to run Kannel as kannel instead of root.
+  * The default configuration file will allow connections to the bearerbox
+    admin port from 127.0.0.1 so that status queries via HTTP will work.
+  * Made /etc/kannel and /var/log/kannel be readable by kannel.root only
+    to protect sensitive data in configs and log files. This is enforced
+    by the postinst.
+  * Added a prerm to kill Kannel before it is removed.
+
+ -- Lars Wirzenius <liw@iki.fi>  Mon, 11 Dec 2000 13:59:26 +0200
+
 kannel (0.12.1-1) unstable; urgency=low
 
   * New upstream version 0.12.1. 
