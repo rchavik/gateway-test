@@ -175,7 +175,7 @@ void wtp_machine_dump(WTPMachine *machine){
 }
 
 
-WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
+WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
 
           WTPMachine *machine = NULL;
           long tid;
@@ -184,9 +184,6 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
 
 	  tid = -1;
 	  src_addr = NULL;
-	  dst_addr = NULL;
-	  src_port = -1;
-	  dst_port = -1;
 
           switch (event->type){
 
@@ -229,13 +226,7 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
                   break;
 	   }
 
-	   if (src_addr == NULL) {
-		   src_addr = msg->wdp_datagram.source_address;
-		   dst_addr = msg->wdp_datagram.destination_address;
-		   src_port = msg->wdp_datagram.source_port;
-		   dst_port = msg->wdp_datagram.destination_port;
-	   }
-
+	   gw_assert(src_addr != NULL);
            machine = wtp_machine_find(src_addr, src_port, dst_addr, dst_port,
                     		tid);
            

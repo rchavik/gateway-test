@@ -159,7 +159,7 @@ WTPMachine *wtp_machine_create(Octstr *srcaddr, long srcport,
  * data structure. If the event was RcvAck or RcvAbort, the event is ignored.
  * If the event is RcvErrorPDU, new machine is created.
  */
-WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event);
+WTPMachine *wtp_machine_find_or_create(WAPEvent *event);
 
 
 /*
