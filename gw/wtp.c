@@ -208,6 +208,10 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
 
 	          case RcvAbort:
                        tid = event->RcvAbort.tid;
+		       src_addr = event->RcvAck.client_address;
+		       src_port = event->RcvAck.client_port;
+		       dst_addr = event->RcvAck.server_address;
+		       dst_port = event->RcvAck.server_port;
                   break;
 
 	          case RcvErrorPDU:
@@ -715,6 +719,15 @@ WAPEvent *unpack_abort(Msg *msg, long tid, unsigned char first_octet, unsigned
          event->RcvAbort.tid = tid;  
          event->RcvAbort.abort_type = abort_type;   
          event->RcvAbort.abort_reason = fourth_octet;
+
+	 event->RcvAbort.client_address = 
+	   octstr_duplicate(msg->wdp_datagram.source_address);
+	 event->RcvAbort.server_address = 
+	   octstr_duplicate(msg->wdp_datagram.destination_address);
+	 event->RcvAbort.client_port = msg->wdp_datagram.source_port;
+	 event->RcvAbort.server_port = msg->wdp_datagram.destination_port;
+
+
          debug("wap.wtp", 0, "WTP: unpack_abort: abort event packed");
          return event;
 }
