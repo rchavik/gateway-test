@@ -103,8 +103,6 @@ struct WTPMachine {
         #define QUEUE(name) WTPEvent *name
         #define WSP_EVENT(name) WAPEvent *name
 	#define TIMER(name) WTPTimer *name
-        #define MUTEX(name) Mutex *name
-        #define NEXT(name) struct WTPMachine *name
         #define MACHINE(field) field
 	#define LIST(name) List *name
         #include "wtp_machine-decl.h"

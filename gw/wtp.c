@@ -500,9 +500,7 @@ static WTPMachine *wtp_machine_create_empty(void){
         #define MSG(name) machine->name = msg_create(wdp_datagram)
         #define OCTSTR(name) machine->name = NULL
         #define WSP_EVENT(name) machine->name = NULL
-        #define MUTEX(name) machine->name = mutex_create()
         #define TIMER(name) machine->name = wtp_timer_create()
-        #define NEXT(name) machine->name = NULL
         #define MACHINE(field) field
 	#define LIST(name) machine->name = list_create()
         #include "wtp_machine-decl.h"
@@ -523,9 +521,7 @@ static void wtp_machine_destroy(WTPMachine *machine){
         #define MSG(name) msg_destroy(machine->name)
         #define OCTSTR(name) octstr_destroy(machine->name)
         #define WSP_EVENT(name) machine->name = NULL
-        #define MUTEX(name) mutex_destroy(machine->name)
         #define TIMER(name) wtp_timer_destroy(machine->name)
-        #define NEXT(name) machine->name = NULL
         #define MACHINE(field) field
 	#define LIST(name) list_destroy(machine->name)
         #include "wtp_machine-decl.h"
