@@ -1,3 +1,15 @@
+2000-07-20  Richard Braakman  <dark@wapit.com>
+
+	* gw/wtp.c: Fixed memory leak in wtp_unpack_wdp_datagram.
+	Simplified the code a bit.
+
+	* gw/wtp.c: Made wtp_unpack_wdp_datagram_real not crash when
+	receiving an invalid PDU.
+
+	* gw/wtp_pdu.c: In wtp_pdu_unpack, simply free a PDU with 
+	unknown type instead of trying to destroy it.  None of its
+	fields were set anyway.
+
 2000-07-18  Richard Braakman  <dark@wapit.com>
 
 	* gw/html.c: Fix skipping of quoted strings (bug #89, reported
