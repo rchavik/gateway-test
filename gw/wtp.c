@@ -45,17 +45,6 @@ enum {
 };    
 
 /*
- * Message segmentation data. Position of a segment in a message, if the message 
- * is segmented, otherwise indication of this being a single message.
- */
-enum {
-   body_segment,
-   group_trailer_segment,
-   transmission_trailer_segment,
-   single_message
-};
-
-/*
  * Global data structuresc:
  *
  * wtp machines list

@@ -120,16 +120,6 @@ struct Address {
 };
 
 /*
- * An ordered linked list for storing received segments.
- */
-struct WTPSegment {
-   long tid;
-   char packet_sequence_number;
-   Octstr *data;
-   struct WTPSegment *next;
-};
-
-/*
  * Initialize the WTP subsystem. MUST be called before any other calls
  * to this module.
  */
