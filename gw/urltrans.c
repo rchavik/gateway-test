@@ -213,9 +213,13 @@ char *urltrans_get_pattern(URLTranslation *t, Msg *request)
 	len += count_occurences(pattern, "%r") * 
 			(maxword + 1) * n * ENCODED_LEN;
 	len += count_occurences(pattern, "%p") * 
-			octstr_len(request->smart_sms.sender) * ENCODED_LEN;
-	len += count_occurences(pattern, "%P") * 
 			octstr_len(request->smart_sms.receiver) * ENCODED_LEN;
+	len += count_occurences(pattern, "%P") * 
+			octstr_len(request->smart_sms.sender) * ENCODED_LEN;
+	len += count_occurences(pattern, "%q") * 
+			octstr_len(request->smart_sms.receiver) * ENCODED_LEN;
+	len += count_occurences(pattern, "%Q") * 
+			octstr_len(request->smart_sms.sender) * ENCODED_LEN;
 	len += count_occurences(pattern, "%t") * strlen("YYYY-MM-DD+HH:MM");
 
 	buf = gw_malloc(len + 1);
@@ -258,6 +262,11 @@ char *urltrans_get_pattern(URLTranslation *t, Msg *request)
 				s = strchr(s, '\0');
 			}
 			break;
+
+			/* NOTE: the sender and receiver is already switched in
+			 *    message, so that's why we must use 'sender' when
+			 *    we want original receiver and vice versa
+			 */
 		case 'P':
 			encode_for_url(enc, 
 			    	octstr_get_cstr(request->smart_sms.sender));

@@ -1,3 +1,20 @@
+2000-10-24  Richard Braakman  <dark@wapit.com>
+
+	* wmlscript/wsstdlib.c: Corrected "Phonebook" to "PhoneBook".
+
+2000-10-24  Kalle Marjola  <rpr@wapit.com>
+
+	* doc/userguide/userguide.xml: filled SMPP smsc group fields,
+	thanks for Mikael Gueck for patch.
+
+2000-10-24  Kalle Marjola  <rpr@wapit.com>
+
+	* gw/urltrans.c: added missing (disappeared?) room reservation for
+	%q and %Q in get_pattern, and added note why sender and receiver
+	is switched. Thanks for Juho-Pekka Virolainen for noticing this.
+
+	* gw/urltrans.c: oops, forgot to switch reservations.
+
 2000-10-23  Kalle Marjola  <rpr@wapit.com>
 
 	* doc/userguide/userguide.xml: added missing EMI variable
