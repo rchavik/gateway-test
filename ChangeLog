@@ -1,3 +1,66 @@
+2000-10-10  Kalle Marjola  <rpr@wapit.com>
+
+	* Typographic fix in userguide.xml.
+
+2000-10-10  Richard Braakman  <dark@wapit.com>
+
+	* wmlscript/{ws.c, wsgram.y, wsstree.[ch]}: Remove WsPair and
+        replace it with more specific types WsVarDec and WsFormalParm.
+        This gets rid of an assumption that a long will fit in a (void *)
+	field, which tends not to be true on 64-bit platforms.
+
+2000-10-10  Richard Braakman  <dark@wapit.com>
+
+	* wmlscript/wsencode.c: Fix va_arg type bug for all platforms,
+	not just sparc.  Removed SPARC_ABI conditionals.
+
+2000-10-10  Lars Wirzenius  <liw@iki.fi>
+
+	* debian/postinst: Don't use /var/log/kannel as home directory
+	for user kannel.
+
+2000-10-10  Lars Wirzenius  <liw@iki.fi>
+
+	* debian/postinst: Now updates rc.d links and starts Kannel.
+	
+	* debian/postrm: Wrote. Removes rc.d links.
+
+2000-10-10  Richard Braakman  <dark@wapit.com>
+
+	* gw/wsp-method-state.h: Fixed state transition for TR-Abort.Ind,
+	in state REPLYING.  Thanks to Aymerick Jéhann for noticing.
+
+2000-10-10  Lars Wirzenius  <liw@iki.fi>
+
+	* debian/rules: "clean" doesn't run "make clean" unless Makefile
+	exists.
+
+2000-10-10  Lars Wirzenius  <liw@iki.fi>
+
+	* debian/init: start kannel boxes as user "kannel" instead of
+	root. run_kannel_box needs to run as root to create the pid file.
+	
+	* debian/postinst: Wrote. Creates user kannel and make
+	/var/log/kannel be owned by kannel.
+	
+	* utils/run_kannel_box.c: Added --no-extra-args option, so that
+	we can run other programs than Kannel boxes (su, in this case,
+	to switch users).
+
+2000-10-10 Aarno Syvanen <syvanen@wapit.com>
+
+	* gw/wtp_init_state-decl.h: Prevent RCR growing greater than its 
+	maximum allowed value.
+
+2000-10-10  Kalle Marjola  <rpr@wapit.com>
+
+	* gwlib/octstr.c: fixed bug in octstr_str_compare
+	
+2000-10-10  Lars Wirzenius  <liw@iki.fi>
+
+	* gwlib/gwthread.h: Removed unnecessary and bad ## operator
+	from gwthread_create wrapper macro.
+
 2000-10-09  Richard Braakman  <dark@wapit.com>
 
 	* wmlscript/wsstree.c: Always convert the result of an && or ||
