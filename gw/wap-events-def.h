@@ -137,6 +137,7 @@ WAPEVENT(TR_Abort_Req,
      INTEGER(tid)
      INTEGER(abort_type)
      INTEGER(abort_reason)
+     INTEGER(mid)
      ) 
 
 WAPEVENT(TimerTO_A,

@@ -77,6 +77,13 @@ static void wtp_machine_destroy(WTPMachine *sm);
 
 
 /*
+ * Feed an event to a WTP state machine. Handle all errors by itself, do not 
+ * report them to the caller. Generate a pointer to WSP event, if an indication 
+ * or a confirmation is required.
+ */
+void wtp_handle_event(WTPMachine *machine, WAPEvent *event);
+
+/*
  * Print a wtp event or a wtp machine state name as a string.
  */
 
