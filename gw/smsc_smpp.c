@@ -815,7 +815,7 @@ static int data_receive(int fd, Octstr *to) {
 		goto error;
 	}
 
-	octstr_append_date(to, data, length);
+	octstr_append_data(to, data, length);
 
 	/* Okay, done */
 	return 1;
