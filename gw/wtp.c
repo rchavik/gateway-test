@@ -12,18 +12,6 @@
 #include "wtp_pdu.h" 
 
 /*
- * Possible errors in incoming messages.
- */
-enum {
-    no_datagram,
-    wrong_version,
-    illegal_header,
-    no_segmentation,
-    pdu_too_short_error,
-    no_concatenation
-};
-
-/*
  * Protocol version (currently, there is only one)
  */
 enum {
@@ -131,10 +119,6 @@ static WTPMachine *wtp_machine_find(Octstr *source_address, long source_port,
  */
 static WAPEvent *pack_wsp_event(WAPEventName wsp_name, WAPEvent *wtp_event, 
          WTPMachine *machine);
-
-static void append_to_event_queue(WTPMachine *machine, WAPEvent *event);
- 
-static WAPEvent *remove_from_event_queue(WTPMachine *machine);
 
 /*
  * Give the status the module:
@@ -399,50 +383,33 @@ static void wtp_handle_event(WTPMachine *machine, WAPEvent *event){
      WAPEvent *wsp_event = NULL;
      WAPEvent *timer_event = NULL;
 
-/* 
- * If we're already handling events for this machine, add the event to the 
- * queue.
- */
-     if (mutex_try_lock(machine->mutex) == -1) {
-	append_to_event_queue(machine, event);
-	return;
+     debug("wap.wtp", 0, "WTP: machine %p, state %s, event %s.", 
+	   (void *) machine, 
+	   name_state(machine->state), 
+	   wap_event_name(event->type));
+
+     #define STATE_NAME(state)
+     #define ROW(wtp_state, event_type, condition, action, next_state) \
+	     if (machine->state == wtp_state && \
+		event->type == event_type && \
+		(condition)) { \
+		action \
+		machine->state = next_state; \
+	     } else 
+     #include "wtp_state-decl.h"
+	     {
+		error(0, "WTP: handle_event: unhandled event!");
+		debug("wap.wtp", 0, "WTP: handle_event: Unhandled event was:");
+		wap_event_dump(event);
+		return;
+	     }
+
+     if (event != NULL) {
+	wap_event_destroy(event);  
      }
 
-     do {
-	  debug("wap.wtp", 0, "WTP: machine %p, state %s, event %s.", 
-	  	(void *) machine, 
-		name_state(machine->state), 
-		wap_event_name(event->type));
-
-	  #define STATE_NAME(state)
-	  #define ROW(wtp_state, event_type, condition, action, next_state) \
-		  if (machine->state == wtp_state && \
-		     event->type == event_type && \
-		     (condition)) { \
-		     action \
-                     machine->state = next_state; \
-		  } else 
-	  #include "wtp_state-decl.h"
-		  {
-		     error(0, "WTP: handle_event: unhandled event!");
-		     debug("wap.wtp", 0, "WTP: handle_event: Unhandled event was:");
-		     wap_event_dump(event);
-                     return;
-		  }
-
-	  if (event != NULL) {
-	     wap_event_destroy(event);  
-          }
-
-          event = remove_from_event_queue(machine);
-     } while (event != NULL);
-     
-     if (machine->in_use)
-	mutex_unlock(machine->mutex);
-     else
+     if (!machine->in_use)
      	wtp_machine_destroy(machine);
- 
-     return;
 }
 
 static unsigned long wtp_tid_next(void){
@@ -726,22 +693,3 @@ static WAPEvent *pack_wsp_event(WAPEventName wsp_name, WAPEvent *wtp_event,
 
          return event;
 } 
-
-/*
- * Append an event to the event queue of a WTPMachine. 
- */
-static void append_to_event_queue(WTPMachine *machine, WAPEvent *event) {
-
-       list_append(machine->event_queue, event);
-}
-
-
-/*
- * Return the first event from the event queue of a WTPMachine, and remove
- * it from the queue, NULL if the queue was empty.
- */
-static WAPEvent *remove_from_event_queue(WTPMachine *machine) {
-
-       return list_extract_first(machine->event_queue);
-}
-
