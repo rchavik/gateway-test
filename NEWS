@@ -27,6 +27,8 @@ Bugfixes:
 
  * Small fixes to WTP state machines to handle rare conditions.
 
+ * WMLScript compiler can now handle the number -2147483648.
+
 Changes since version 0.10:
 
 Compatibility breakers:

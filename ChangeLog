@@ -1,3 +1,8 @@
+2000-10-25  Richard Braakman  <dark@wapit.com>
+
+	* wmlscript/wsstree.[ch], wmlscript/wslexer.c: Fix parsing of
+	integer literal -2147483648.
+
 2000-10-24  Kalle Marjola  <rpr@wapit.com>
 
 	* doc/userguide/userguide.xml: filled SMPP smsc group fields,
