@@ -124,6 +124,7 @@ WAPEVENT(TR_Invoke_Res,
       INTEGER(tid)
       OCTSTR(exit_info)
       INTEGER(exit_info_present)
+      INTEGER(mid);
       )
 
 WAPEVENT(TR_Result_Req,
