@@ -413,6 +413,7 @@ int config_sanity_check(Config *config)
 	    wapbox++;
 	else if (strcmp(group, "smsc")!= 0
 		 && strcmp(group, "sms-service")!= 0
+		 && strcmp(group, "otaconfig") != 0
 		 && strcmp(group, "sendsms-user")!= 0)
 	{
 	    error(0, "Unknown group '%s' in configuration", group);
