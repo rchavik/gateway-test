@@ -119,15 +119,6 @@ static WTPSegment *create_segment(void);
 
 static void segment_destroy(WTPSegment *segment);
 
-static WTPSegment *find_previous_segment(long tid, unsigned char sequence_number,
-       WTPSegment *first, WTPSegment *next);
-
-static WTPSegment *insert_segment(WTPSegment *previous, WTPSegment *next, 
-       WTPSegment *segment);
-
-static int list_missing_segments(WTPSegment *segments_ackd, 
-       WTPSegment *segments_list, WTPSegment *missing_segments);
-
 static WTPSegment *make_missing_segments_list(Msg *msg, 
                   unsigned char number_of_missing);
 /*
@@ -171,21 +162,13 @@ static WAPEvent *unpack_abort(Msg *msg, long tid, unsigned char first_octet,
 static WAPEvent *unpack_invoke(Msg *msg, WTPSegment *segment, long tid, 
        unsigned char first_octet, unsigned char fourth_octet);
 
-static Octstr *unpack_segmented_invoke(Msg *msg, WTPSegment *segment, long tid, 
-       unsigned char first_octet, unsigned char fourth_octet);
-
 static WTPSegment *unpack_negative_ack(Msg *msg, unsigned char octet);
 
 static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid);
 static WAPEvent *unpack_invoke_flags(WAPEvent *event, Msg *msg, long tid, 
        unsigned char first_octet, unsigned char fourth_octet);
 
-static WTPSegment *add_segment_to_message(long tid, Octstr *data, unsigned 
-                                          char position);
-
 static int first_segment(WAPEvent *event);
-
-static Octstr *concatenate_message(long tid, WTPSegment *segments_list);
 
 static Address *deduce_reply_address(Msg *msg);
 
@@ -996,91 +979,6 @@ static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid)
      return NULL;
 }
 
-static Octstr *unpack_segmented_invoke(Msg *msg, WTPSegment *segments_list, 
-       long tid, unsigned char first_octet, unsigned char fourth_octet){
-       
-       Octstr *event_data = NULL;
-       static WTPSegment *segments_ackd = NULL;
-       WTPSegment *missing_segments = NULL;
-       Address *address = NULL;
-       
-       unsigned char packet_sequence_number = 0;
-       int segments_missing = 0;
-
-       static int negative_ack_sent = 0,
-              group_ack_sent = 0;
-
-       debug("wap.wtp", 0, "WTP: got a segmented invoke package");
-
-       tid = deduce_tid(msg);
-       packet_sequence_number = fourth_octet;
-       address = deduce_reply_address(msg);
-
-       if (message_type(first_octet) == body_segment){
-          debug("wap.wtp", 0, "WTP: Got a body segment");
-          msg_dump(msg, 0);
-          segments_list = add_segment_to_message(tid, 
-                          msg->wdp_datagram.user_data, packet_sequence_number);
-          return NULL;
-       }
-
-       if (message_type(first_octet) == group_trailer_segment){
-          debug("wap.wtp", 0, "WTP: Got the last segment of the group");
-          msg_dump(msg, 0);
-          segments_list = add_segment_to_message(tid, 
-                          msg->wdp_datagram.user_data, packet_sequence_number);
-          segments_missing = list_missing_segments(segments_ackd, segments_list,
-                             missing_segments);
-
-          if (segments_missing) {
-             wtp_send_negative_ack(address, tid, negative_ack_sent,
-                                   segments_missing, missing_segments);
-             negative_ack_sent = 1;
-
-          } else {
-            wtp_send_group_ack(address, tid, group_ack_sent, 
-                               packet_sequence_number);
-            group_ack_sent = 1;
-          }
-
-          segments_ackd = segments_list;
-          return NULL;
-      }
-
-      if (message_type(first_octet) == transmission_trailer_segment){
-         debug("wap.wtp", 0, "WTP: Got last segment of a message");
-         msg_dump(msg, 0);
-
-         segments_list = add_segment_to_message(tid, 
-                         msg->wdp_datagram.user_data, packet_sequence_number);
-         segments_missing = list_missing_segments(segments_ackd, segments_list,
-                            missing_segments);
-
-         if (segments_missing) {
-             wtp_send_negative_ack(address, tid, negative_ack_sent, 
-                                   segments_missing, missing_segments);
-             negative_ack_sent = 1;
-             return NULL;
-
-         } else {
-            wtp_send_group_ack(address, tid, group_ack_sent, 
-                               packet_sequence_number);
-            group_ack_sent = 1;
-         }         
-
-         event_data = concatenate_message(tid, segments_list);
-         
-         missing_segments = NULL;
-         segments_missing = 0;
-         group_ack_sent = 0;
-         negative_ack_sent = 0;        
-
-         return event_data;
-      }
-/* Following return is unnecessary but is required by the compiler */
-      return NULL;
-}
-
 static WTPSegment *unpack_negative_ack(Msg *msg, unsigned char fourth_octet){
 
        WTPSegment *missing_segments = NULL;
@@ -1122,37 +1020,6 @@ static WAPEvent *unpack_invoke_flags(WAPEvent *event, Msg *msg, long tid,
 }
 
 /*
- * Returns: pointer to the segment added, if OK
- */
-static WTPSegment *add_segment_to_message(long tid, Octstr *data, unsigned char 
-                                          position){
-
-       WTPSegment *previous = NULL,
-                  *next = NULL,
-                  *new_segment = NULL;
-
-       debug("wap.wtp", 0, "WTP: Adding a segment into the message");
-
-       new_segment = create_segment();
-       new_segment->tid = tid;
-       new_segment->packet_sequence_number = position;
-       octstr_destroy(new_segment->data);
-       new_segment->data = octstr_duplicate(data);
-
-       if (segments->first == NULL){
-          segments->first = new_segment;
-          return segments->first;
-
-       } else {
-          previous = find_previous_segment(tid, position, segments->first, next);
-          return insert_segment(previous, next, new_segment);
-       }
-
-/* Following return is not necessary but is required by the compiler */
-       return NULL;      
-}
-
-/*
  * If there is no data yet collected at userdata field of WAPEvent, we have the first
  * segment. Of course, this not a general function for deciding whether some segment 
  * of a message is the first one. 
@@ -1167,16 +1034,6 @@ static int first_segment(WAPEvent *event){
           first_segment = 0;
 
        return first_segment;
-}
-
-static Octstr *concatenate_message(long tid, WTPSegment *segments_list){
-
-       Octstr *message = NULL;
-
-       debug("wap.wtp", 0, "WTP: concatenation not yet supported");
-       gw_assert(segments_list != NULL);
-       
-       return message;
 }
 
 /*
@@ -1196,55 +1053,6 @@ static Address *deduce_reply_address(Msg *msg){
        address->destination_port = msg->wdp_datagram.source_port;
 
        return address;
-}
-
-static WTPSegment *find_previous_segment(long tid, unsigned char packet_sequence_number,
-       WTPSegment *first, WTPSegment *next){
-
-       WTPSegment *previous = NULL,
-                  *current = NULL;
-
-       current = first;
-       previous = first;
-
-       while (current->tid < tid){
-	     while (current->packet_sequence_number < packet_sequence_number){
-                   previous = current;
-                   if (current->next != NULL)
-                       current = current->next;
-             }
-       }
-
-       if (current == NULL)
-          debug("wap.wtp", 0, "WTP: find_previous_segment: tid not found from the segments list");
-       else
-          if (current->next == NULL)
-             next = current;
-          else 
-             next = current->next;
-
-       return previous;
-}
-
-static WTPSegment *insert_segment(WTPSegment *previous, WTPSegment *next, 
-       WTPSegment *this_segment){
-
-       previous->next = this_segment;
-       this_segment->next = next;
-
-       return this_segment;
-}
-
-static int list_missing_segments(WTPSegment *segments_ackd, 
-       WTPSegment *segments_list, WTPSegment *missing_segments){
-
-       int segments_missing = 0;
-
-       gw_assert(segments_ackd != NULL);
-       gw_assert(segments_list != NULL);
-       gw_assert(missing_segments != NULL);
-
-       return segments_missing;
 }
 
 /*
