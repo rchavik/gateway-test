@@ -1,3 +1,13 @@
+2001-05-02  Richard Braakman  <dark@wapit.com>
+
+	* gw/smsc_cimd2.c: Made packet_encode_message() cope if the
+	sender field is not set.
+
+2001-04-23  Richard Braakman  <dark@wapit.com>
+
+	* gw/smsc_smpp.[ch]: Fixed reopen() so that it doesn't crash.
+        Had to rearrange some error handling code to make this work.
+
 2001-04-23  Richard Braakman  <dark@wapit.com>
 
 	* gw/wsp-session.c: Applied a patch from Aymerick Jéhanne that

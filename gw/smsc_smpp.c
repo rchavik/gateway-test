@@ -27,7 +27,6 @@ SMSCenter *smpp_open(char *host, int port, char *system_id, char *password,
 	struct smpp_pdu_bind_transmitter *bind_transmitter = NULL;
 
 	smsc = smscenter_construct();
-	if(smsc==NULL) goto error;
 
 	smsc->type = SMSC_TYPE_SMPP_IP;
 	sprintf(smsc->name, "SMPP:%s:%i/%i:%s:%s", host, port,
@@ -44,35 +43,17 @@ SMSCenter *smpp_open(char *host, int port, char *system_id, char *password,
 
 	/* Create FIFO stacks */
 	smsc->unsent_mt = fifo_new();
-	if(smsc->unsent_mt == NULL) goto error;
-
 	smsc->sent_mt = fifo_new();
-	if(smsc->sent_mt == NULL) goto error;
-
 	smsc->delivered_mt = fifo_new();
-	if(smsc->delivered_mt == NULL) goto error;
-
 	smsc->received_mo = fifo_new();
-	if(smsc->received_mo == NULL) goto error;
-
 	smsc->fifo_t_in = fifo_new();
-	if(smsc->fifo_t_in == NULL) goto error;
-
 	smsc->fifo_t_out = fifo_new();
-	if(smsc->fifo_t_out == NULL) goto error;
-
 	smsc->fifo_r_in = fifo_new();
-	if(smsc->fifo_r_in == NULL) goto error;
-
 	smsc->fifo_r_out = fifo_new();
-	if(smsc->fifo_r_out == NULL) goto error;
 
 	/* Create buffers */
 	smsc->data_t = data_new();
-	if(smsc->data_t == NULL) goto error;
-
 	smsc->data_r = data_new();
-	if(smsc->data_r == NULL) goto error;
 
 	/* Open the transmitter connection */
 	smsc->fd_t = tcpip_connect_to_server(smsc->hostname, smsc->port);
@@ -86,7 +67,6 @@ SMSCenter *smpp_open(char *host, int port, char *system_id, char *password,
 
 	/* Push a BIND_RECEIVER PDU on the [smsc->unsent] stack. */
 	pdu = pdu_new();
-	if(pdu == NULL) goto error;
 	pdu->id = SMPP_BIND_RECEIVER;
 	smsc->seq_r = 1;
 	pdu->sequence_no = 1;
@@ -101,7 +81,6 @@ SMSCenter *smpp_open(char *host, int port, char *system_id, char *password,
 
 	/* Push a BIND_TRANSMITTER PDU on the [smsc->unsent] stack. */
 	pdu = pdu_new();
-	if(pdu == NULL) goto error;
 	pdu->id = SMPP_BIND_TRANSMITTER;
 	smsc->seq_t = 1;
 	pdu->sequence_no = 1;
@@ -145,7 +124,10 @@ int smpp_reopen(SMSCenter *smsc) {
 	struct smpp_pdu_bind_receiver *bind_receiver = NULL;
 	struct smpp_pdu_bind_transmitter *bind_transmitter = NULL;
 
-	if(smsc==NULL) goto error;
+        if (smsc == NULL) {
+            error(0, "SMPP: smpp_reopen(NULL) called.");
+            return -1;
+        }
 
 	/* Destroy FIFO stacks. */
 	fifo_free(smsc->unsent_mt);
@@ -167,35 +149,17 @@ int smpp_reopen(SMSCenter *smsc) {
 
 	/* Create FIFO stacks */
 	smsc->unsent_mt = fifo_new();
-	if(smsc->unsent_mt == NULL) goto error;
-
 	smsc->sent_mt = fifo_new();
-	if(smsc->sent_mt == NULL) goto error;
-
 	smsc->delivered_mt = fifo_new();
-	if(smsc->delivered_mt == NULL) goto error;
-
 	smsc->received_mo = fifo_new();
-	if(smsc->received_mo == NULL) goto error;
-
 	smsc->fifo_t_in = fifo_new();
-	if(smsc->fifo_t_in == NULL) goto error;
-
 	smsc->fifo_t_out = fifo_new();
-	if(smsc->fifo_t_out == NULL) goto error;
-
 	smsc->fifo_r_in = fifo_new();
-	if(smsc->fifo_r_in == NULL) goto error;
-
 	smsc->fifo_r_out = fifo_new();
-	if(smsc->fifo_r_out == NULL) goto error;
 
 	/* Create buffers */
 	smsc->data_t = data_new();
-	if(smsc->data_t == NULL) goto error;
-
 	smsc->data_r = data_new();
-	if(smsc->data_r == NULL) goto error;
 
 	/* Open the transmitter connection */
 	smsc->fd_t = tcpip_connect_to_server(smsc->hostname, smsc->port);
@@ -209,7 +173,6 @@ int smpp_reopen(SMSCenter *smsc) {
 
 	/* Push a BIND_RECEIVER PDU on the [smsc->unsent] stack. */
 	pdu = pdu_new();
-	if(pdu == NULL) goto error;
 	pdu->id = SMPP_BIND_RECEIVER;
 	smsc->seq_r = 1;
 	pdu->sequence_no = 1;
@@ -224,7 +187,6 @@ int smpp_reopen(SMSCenter *smsc) {
 
 	/* Push a BIND_TRANSMITTER PDU on the [smsc->unsent] stack. */
 	pdu = pdu_new();
-	if(pdu == NULL) goto error;
 	pdu->id = SMPP_BIND_TRANSMITTER;
 	smsc->seq_t = 1;
 	pdu->sequence_no = 1;
@@ -242,25 +204,7 @@ int smpp_reopen(SMSCenter *smsc) {
 
 error:
 	error(0, "smpp_reopen: could not open");
-
 	pdu_free(pdu);
-
-	/* Destroy FIFO stacks. */
-	fifo_free(smsc->unsent_mt);
-	fifo_free(smsc->sent_mt);
-	fifo_free(smsc->delivered_mt);
-	fifo_free(smsc->received_mo);
-	fifo_free(smsc->fifo_t_in);
-	fifo_free(smsc->fifo_t_out);
-	fifo_free(smsc->fifo_r_in);
-	fifo_free(smsc->fifo_r_out);
-
-	/* Destroy buffers */
-	data_free(smsc->data_t);
-	data_free(smsc->data_r);
-
-	smscenter_destruct(smsc);
-
 	return -1;
 }
 
@@ -273,7 +217,6 @@ int smpp_close(SMSCenter *smsc) {
 
 	/* Push a UNBIND PDU on the [smsc->fifo_r_out] stack. */
 	pdu = pdu_new();
-	if(pdu == NULL) goto error;
 	pdu->id = SMPP_UNBIND;
 	pdu->length = 16;
 	pdu->status = 0;
@@ -283,7 +226,6 @@ int smpp_close(SMSCenter *smsc) {
 
 	/* Push a UNBIND PDU on the [smsc->fifo_t_out] stack. */
 	pdu = pdu_new();
-	if(pdu == NULL) goto error;
 	pdu->id = SMPP_UNBIND;
 	pdu->length = 16;
 	pdu->status = 0;
@@ -329,9 +271,6 @@ int smpp_close(SMSCenter *smsc) {
 	data_free(smsc->data_r);
 
 	return 0;
-
-error:
-	return -1;
 }
 
 int smpp_submit_msg(SMSCenter *smsc, Msg *msg) {
@@ -346,13 +285,16 @@ int smpp_submit_msg(SMSCenter *smsc, Msg *msg) {
 
 	msg_dump(msg, 0);
 
+	if (smsc->smpp_r_state == SMPP_STATE_ERROR ||
+            smsc->smpp_t_state == SMPP_STATE_ERROR)
+                return -1;
+
 	/* If we cannot really send yet, push message to
 	   smsc->unsent_mt where it will stay until
 	   smpp_pdu_act_bind_transmitter_resp is called. */
 
 	/* Push a SUBMIT_SM PDU on the smsc->fifo_t_out fifostack. */
 	pdu = pdu_new();
-	if(pdu == NULL) goto error;
 	memset(pdu, 0, sizeof(struct smpp_pdu));
 
 	submit_sm = gw_malloc(sizeof(struct smpp_pdu_submit_sm));
@@ -437,6 +379,12 @@ int smpp_receive_msg(SMSCenter *smsc, Msg **msg) {
 	struct smpp_pdu_deliver_sm *deliver_sm = NULL;
 	char *newnum = NULL;
 
+        *msg = NULL;
+
+	if (smsc->smpp_r_state == SMPP_STATE_ERROR ||
+            smsc->smpp_t_state == SMPP_STATE_ERROR)
+                return -1;
+
 	/* Pop a Msg message from the MSG_MO stack. */
 	if( fifo_pop(smsc->received_mo, &pdu) == 1 ) {
 
@@ -451,7 +399,6 @@ int smpp_receive_msg(SMSCenter *smsc, Msg **msg) {
 		gw_free(newnum);
 
 		*msg = msg_create(smart_sms);
-		if(*msg==NULL) goto error;
 
 		if( (deliver_sm->esm_class == 67) || (deliver_sm->data_coding == 245) ) {
 			(*msg)->smart_sms.flag_8bit = 1;
@@ -479,6 +426,7 @@ int smpp_receive_msg(SMSCenter *smsc, Msg **msg) {
 error:
 	error(errno, "smpp_receive_msg: error");
 	msg_destroy(*msg);
+        *msg = NULL;
 	return -1;
 }
 
@@ -506,8 +454,11 @@ int smpp_pending_smsmessage(SMSCenter *smsc) {
 	/* Receive raw data */
 	ret = data_receive(smsc->fd_t, smsc->data_t);
 	if(ret == -1) {
-		warning(0, "smpp_pending_smsmessage: reopening connections");
-		smpp_reopen(smsc);
+		/* We need trickery to report this error.
+		 * Return 1 here so that the caller tries _receive_msg next.
+                 */
+		smsc->smpp_t_state = SMPP_STATE_ERROR;
+		return 1;
 	}
 
 	/* Interpret the raw data */
@@ -526,8 +477,11 @@ int smpp_pending_smsmessage(SMSCenter *smsc) {
 
 	ret = data_receive(smsc->fd_r, smsc->data_r);
 	if(ret == -1) {
-		warning(0, "smpp_pending_smsmessage: reopening connections");
-		smpp_reopen(smsc);
+		/* We need trickery to report this error.
+		 * Return 1 here so that the caller tries _receive_msg next.
+                 */
+		smsc->smpp_r_state = SMPP_STATE_ERROR;
+		return 1;
 	}
 
 	while( fifo_pop(smsc->fifo_r_out, &pdu) == 1 ) {
@@ -1502,14 +1456,12 @@ static int pdu_act_deliver_sm(SMSCenter *smsc, smpp_pdu *pdu) {
 
 	/* Push a copy of the PDU on the smsc->received_mo fifostack. */
 	newpdu = pdu_new();
-	if(newpdu == NULL) goto error;
 	memcpy(newpdu, pdu, sizeof(struct smpp_pdu));
 	pdu->message_body = NULL;
 	fifo_push(smsc->received_mo, newpdu);
 
 	/* Push a DELIVER_SM_RESP structure on the smsc->fifo_r_out fifostack. */
 	newpdu = pdu_new();
-	if(newpdu == NULL) goto error;
 	memset(newpdu, 0, sizeof(struct smpp_pdu));
 
 	deliver_sm_resp = gw_malloc(sizeof(struct smpp_pdu_deliver_sm_resp));
@@ -1742,7 +1694,6 @@ static int pdu_act_enquire_link(SMSCenter *smsc, smpp_pdu *pdu) {
 
 	/* Push a ENQUIRE_LINK_RESP on the appropriate fifostack. */
 	newpdu = pdu_new();
-	if(newpdu==NULL) goto error;
 	memset(newpdu, 0, sizeof(struct smpp_pdu));
 
 	newpdu->message_body = NULL;
@@ -1759,9 +1710,6 @@ static int pdu_act_enquire_link(SMSCenter *smsc, smpp_pdu *pdu) {
 	}
 
 	return 1;
-
-error:
-	return -1;
 }
 
 static int pdu_act_enquire_link_resp(SMSCenter *smsc, smpp_pdu *pdu) {

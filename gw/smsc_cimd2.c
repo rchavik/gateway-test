@@ -1155,6 +1155,10 @@ static struct packet *packet_encode_message(Msg *msg) {
 
 	gw_assert(msg != NULL);
 	gw_assert(msg->type == smart_sms);
+        gw_assert(msg->smart_sms.receiver != NULL);
+
+        if (msg->smart_sms.sender == NULL)
+            msg->smart_sms.sender = octstr_create("");
 
 	if (!parm_valid_address(msg->smart_sms.receiver)) {
 		warning(0, "cimd2_submit_msg: non-digits in "

@@ -115,6 +115,7 @@
 #define ESME_RQUERYFAIL               0x00000067 /* Query SM Failed */
 #define ESME_RUNKNOWNERR              0x000000FF /* Unknown Error */
 
+#define SMPP_STATE_ERROR              0x00000000
 #define SMPP_STATE_CONNECTED          0x00000001
 #define SMPP_STATE_BOUND              0x00000002
 
