@@ -261,7 +261,7 @@ static void handle_init_event(WTPInitMachine *init_machine, WAPEvent *event){
 		 error(1, "WTP_INIT: handle_init_event: unhandled event!");
 		 debug("wap.wtp.init", 0, "WTP_INIT: handle_init_event:"
                        "Unhandled event was:");
-		 wap_event_dump(event);
+		 wap_event_destroy(event);
 		 return;
 	      }
 

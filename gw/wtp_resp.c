@@ -218,7 +218,7 @@ static void resp_event_handle(WTPRespMachine *resp_machine, WAPEvent *event){
 	     {
 		error(0, "WTP: handle_event: unhandled event!");
 		debug("wap.wtp", 0, "WTP: handle_event: Unhandled event was:");
-		wap_event_dump(event);
+		wap_event_destroy(event);
 		return;
 	     }
 

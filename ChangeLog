@@ -1,3 +1,38 @@
+2000-10-09  Richard Braakman  <dark@wapit.com>
+
+	* wmlscript/wsstree.c: Always convert the result of an && or ||
+	operator to boolean, because the spec requires it for typeof().
+
+	* wmlscript/wsopt.c: Add an optimization to remove useless tobool
+	conversions.
+
+	* wmlscript/wsgram.y: Compile unary + such that it performs the
+	required type conversions.
+
+	 * wmlscript/wsasm.c: Fixed error in jump distance calculation when
+	jumping backward over a forward jump.  This messed up "continue"
+	statements among other things.
+
+2000-10-09 Aarno Syvänen <syvanen@wapit.com>
+
+	* gw/wtp_init.c, wtp_resp.c: When the state machines cannot handle
+	an event, we ignore it and log an error message. Timer will abort
+	this transaction.
+
+2000-10-09 Aarno Syvänen <syvanen@wapit.com>
+
+	* gw/wtp_state-decl.h: Incorporated CR-Nokia-WTP-20-March-2000/2.
+	In plain words, when load is heavy, Ack(TidOK) may be delayed so
+	much that initiator will retransmit it and the responder will re-
+	ceive the original when its state is RESULT_WAIT. This Ack must
+	be ignored. This corrects bug reported by David.
+
+2000-10-06  Richard Braakman  <dark@wapit.com>
+
+	* gw/smsc.c: Reactivate the code that sets the timestamp on an
+	sms message, if the SMSC didn't set it.  Thanks to Jarkko Kovala
+	for noticing.
+
 2000-10-06  Richard Braakman  <dark@wapit.com>
 
 	* Making release 0.11.3
