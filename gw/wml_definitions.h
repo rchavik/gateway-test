@@ -125,8 +125,8 @@ struct {
   { "href", "https://", 0x4C },
   { "hspace", NULL, 0x14 },
   { "http-equiv", NULL, 0x5A },
-  { "http-equiv", "content-type", 0x5B },
-  { "http-equiv", "expires", 0x5D },
+  { "http-equiv", "Content-Type", 0x5B },
+  { "http-equiv", "Expires", 0x5D },
   { "id", NULL, 0x55 },
   { "ivalue", NULL, 0x15 },
   { "iname", NULL, 0x16 },
@@ -218,7 +218,7 @@ wml_attr_value_t wml_URL_values[] = {
   { "www.", 0xA1 },
   { ".com/", 0x85 },
   { ".edu/", 0x86 },
-  { ".net/", 0x67 },
+  { ".net/", 0x87 },
   { ".org/", 0x88 },
   { NULL }
 };
