@@ -42,6 +42,12 @@
 #define BYTE_RANGE 128
 #define SUFFIX_BYTE_RANGE 129
 
+/* Use this value for Expires headers if we can't parse the expiration
+ * date.  It's about one day after the start of the epoch.  We don't
+ * use the exact start of the epoch because some clients have trouble
+ * with that. */
+#define LONG_AGO_VALUE 100000
+
 /*
  * get field value and return its type as predefined data types
  * There are three kinds of field encodings:
@@ -1661,6 +1667,13 @@ static void pack_long_integer(Octstr *packed, unsigned long integer)
     unsigned char octet;
     long len;
 
+    if (integer == 0) {
+	/* The Multi-octet-integer has to be at least 1 octet long. */
+	octstr_append_char(packed, 1); /* length */
+	octstr_append_char(packed, 0); /* value */
+	return;
+    }
+
     /* Encode it back-to-front, by repeatedly inserting
      * at the same position, because that's easier. */
     for (len = 0; integer != 0; integer >>= 8, len++) {
@@ -2494,9 +2507,7 @@ static int pack_expires(Octstr *packed, Octstr *value)
 	/* Responses with an invalid Expires header should be treated
 	as already expired.  If we just skip this header, then the client
 	won't know that.  So we encode one with a date far in the past. */
-	/* A Date-value is always encoded as a Long-integer, even if it
-	 * would fit in a Short-integer. */
-	pack_long_integer(packed, 0);
+	pack_long_integer(packed, LONG_AGO_VALUE);
 	ret = 0;
     }
 

@@ -4,6 +4,9 @@
 	encode it as a date far in the past.  We can't just skip the header
 	because RFC2068 says such a response should be treated as already
 	expired, and we have to tell the client to do that.
+
+	* gw/wsp_headers.c: Make sure that a Multi-octet-integer is always
+	at least one octet long, even if its value is 0.
       
 2000-10-27  Richard Braakman  <dark@wapit.com>
 

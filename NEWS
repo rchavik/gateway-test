@@ -12,6 +12,9 @@ Bugfixes:
 
  * WSP: Corrected handling of invalid Expires headers to conform to RFC2068.
 
+ * WSP: Corrected encoding of date values that are exactly the start of
+   the epoch (Thu, 01 Jan 1970 00:00:00 GMT).
+
 
 Changes since version 0.12:
 
