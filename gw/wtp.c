@@ -132,14 +132,6 @@ void wtp_machine_mark_unused(WTPMachine *machine) {
      machine->timer = NULL;
 }
 
-/* 
- * Removes from the machines list all machines having in_use-flag cleared. Does nothing,
- * if machines list is empty, nor if machines list is busy (garbage collection will 
- * eventually start again).
- */
-void wtp_machines_list_clear(void){
-} 
-
 /*
  * Write state machine fields, using debug function from a project library 
  * wapitlib.c.

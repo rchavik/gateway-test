@@ -169,14 +169,6 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event);
 void wtp_machine_mark_unused(WTPMachine *machine);
 
 
-/* 
- * Removes from the machines list all machines having in_use-flag cleared. Panics 
- * if machines list is empty. If machines list is busy, does nothing (garbage 
- * collection will eventually start again).
- */
-void wtp_machines_list_clear(void);
-
-
 /*
  * Output the state of the machine and all its fields.
  */

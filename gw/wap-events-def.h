@@ -100,6 +100,10 @@ WAPEVENT(RcvAck,
       INTEGER(tid)
       INTEGER(tid_ok)
       INTEGER(rid)
+      OCTSTR(client_address)
+      INTEGER(client_port)
+      OCTSTR(server_address)
+      INTEGER(server_port)
       )
 
 WAPEVENT(TR_Invoke_Req,
