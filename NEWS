@@ -1,4 +1,4 @@
-NEWS about Kannel: Open Source WAP and SMS Gateway version 1.0.2
+NEWS about Kannel: Open Source WAP and SMS Gateway version 1.0.3
 
 This is a STABLE version. We will maintain it and make bugfix
 releases until the next stable version is released, which will
@@ -6,6 +6,21 @@ be version 1.2.
 
 Please try it out and report problems to devel@kannel.org (the 
 development mailing list) or bugs@kannel.org (the bug tracking system).
+
+
+Changes since version 1.0.2:
+
+New features:
+
+ * Support for compiling with libxml 2.3 and up.
+
+
+Bugfixes:
+
+ * GSM modems support (Phone-as-SMSC) is now more stable.
+
+ * bearerbox: WAP ports (9200 and 9201) are less sensitive to network errors.
+
 
 Changes since version 1.0.1:
 
