@@ -43,7 +43,7 @@ static Msg *pdu_decode(Octstr *data);
 static Msg *pdu_decode_deliver_sm(Octstr *data);
 static int pdu_encode(Msg *msg, unsigned char *pdu);
 static Octstr *convertpdu(Octstr *pdutext);
-static int hexchar(char hexc);
+static int hexchar(int hexc);
 static int encode7bituncompressed(Octstr *input, unsigned char *encoded);
 static int encode8bituncompressed(Octstr *input, unsigned char *encoded);
 static void decode7bituncompressed(Octstr *input, int len, Octstr *decoded);
@@ -173,32 +173,63 @@ error:
  * Re-Open the AT (Virtual) SMSCenter
  */
 int at_reopen(SMSCenter *smsc) {
-	if (smsc->at_fd == -1) {
-		info(0, "trying to close already closed AT, ignoring");
-	}
-	else if (close(smsc->at_fd) == -1) {
-		error(errno, "Closing connection to modem `%s' failed.",
-		smsc->at_serialdevice);
-		return -1;
-	}
-	return at_open_connection(smsc);
+        /* Do we really have an open connection to start with? */
+        if (smsc->at_fd == -1) {
+                info(0, "trying to close already closed AT, ignoring");
+        }
+
+        /* If we do, then try to close the file descriptor */
+        else if (close(smsc->at_fd) == -1) {
+                /* This situation could occur as a result of errors not being reported until
+                   the serial connection is closed. Supposing we do get here, we
+                   should reset the at_fd value to -1 to stop infinitely retrying the close. We
+                   also need to printing out the error message reported, just in case it's
+                   significant.
+                */
+                smsc->at_fd = -1;
+                error(errno, "Attempt to close connection to modem `%s' failed. Forcing reset.",
+                      smsc->at_serialdevice);
+        }
+
+        /* Reopen the connection. Note that the at_open_connection call returns
+           a file descriptor, which we should set in the smsc structure */
+        smsc->at_fd = at_open_connection(smsc);
+
+        /* Supposing that failed */
+        if (smsc->at_fd == -1) {
+                error(0, "Attempt to open connection to modem '%s' failed.",
+                      smsc->at_serialdevice);
+                /* Give up */
+                return -1;
+        }
+
+        /* Report success */
+        return 0;
 }
 
 /******************************************************************************
  * Close the SMSCenter
  */
 int at_close(SMSCenter *smsc) {
-	if (smsc->at_fd == -1) {
-		info(0, "trying to close previously closed connection to modem, ignoring");
-		return 0;
-	}
-	if (close(smsc->at_fd) == -1) {
-		error(errno, "Closing connection to modem `%s' failed.",
-		smsc->at_serialdevice);
-		return -1;
-	}
-	smscenter_destruct(smsc);
-	return 0;
+        /* Do we really have an open connection to start with? */
+        if (smsc->at_fd == -1) {
+                info(0, "trying to close already closed AT, ignoring");
+        }
+
+        /* If we do, then try to close the file descriptor */
+        else if (close(smsc->at_fd) == -1) {
+                error(errno, "Attempt to close connection to modem `%s' failed. Forcing reset.",
+                      smsc->at_serialdevice);
+        }
+        
+        /* Our file descriptor can now be safely declared closed */
+        smsc->at_fd = -1;
+        
+        /* Deallocate any miscellany */
+        smscenter_destruct(smsc);
+
+        /* Report success */
+        return 0;
 }
 
 /******************************************************************************
@@ -449,6 +480,8 @@ static int pdu_extract(SMSCenter *smsc, Octstr **pdu) {
 	    || strcmp(smsc->at_modemtype, SIEMENS) == 0) {
 		tmp = hexchar(octstr_get_char(buffer, pos))*16
 		    + hexchar(octstr_get_char(buffer, pos+1));
+		if (tmp < 0)
+		    goto nomsg;
 		tmp = 2 + tmp * 2;
 		pos += tmp;
 	}
@@ -841,9 +874,7 @@ static int numtext(int num) {
 /**********************************************************************
  * Get the numeric value of the text hex
  */
-static int hexchar(char hexc) {
-	hexc -= 48;
+static int hexchar(int hexc) {
+	hexc = toupper(hexc) - 48;
 	return (hexc>9) ? hexc-7 : hexc;
 }
-
-

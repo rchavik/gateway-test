@@ -1,7 +1,32 @@
+2001-03-21  Tuomas Luttinen  <tuo@wapit.com>
+
+        * configure.in, configure: Added the xml2-config that libxml-2.3.* and 
+        newer want instead of xml-config. Tested with libxml-2.2.11 and 2.3.4.
+        Yet to be tested with both libxml1 and libxml2 installed.
+
+2001-03-16 Nick Clarey  <nclarey@3glab.com>
+
+        * gw/smsc_at.c: Repaired a bug in at_reopen which would cause 
+        failed smsc_at connections to be reopened continuously, and
+        repaired a bug in at_close which could possibly cause memory 
+        leakage. Also fixed bugs in both which didn't reset the smsc's
+        file descriptor correctly in case of failed closes.
+
 2001-03-12  Lars Wirzenius  <liw@iki.fi>
 
 	* doc/userguide/userguide.xml: Removed reference to HTTP Basic
 	Authentication, since it isn't implemented in the code.
+
+2001-02-28  Kalle Marjola  <rpr@wapit.com>
+ 
+        * gw/bb_udp.c: 'bugfix': modified so that all errors just make
+        receiver to continue, instead of exiting loop
+ 
+2001-02-28  Richard Braakman <dark@wapit.com>
+ 
+        * gw/smsc_at.c: Made pdu_extract deal with the SMSC address field
+        possibly being bad or too short.  Also made hexchar() take an
+        int as argument, instead of char (which might be signed).
 
 2001-02-26  Richard Braakman  <dark@wapit.com>
 
