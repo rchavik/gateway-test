@@ -208,14 +208,18 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
 
 	          case RcvAbort:
                        tid = event->RcvAbort.tid;
-		       src_addr = event->RcvAck.client_address;
-		       src_port = event->RcvAck.client_port;
-		       dst_addr = event->RcvAck.server_address;
-		       dst_port = event->RcvAck.server_port;
+		       src_addr = event->RcvAbort.client_address;
+		       src_port = event->RcvAbort.client_port;
+		       dst_addr = event->RcvAbort.server_address;
+		       dst_port = event->RcvAbort.server_port;
                   break;
 
 	          case RcvErrorPDU:
                        tid = event->RcvErrorPDU.tid;
+		       src_addr = event->RcvErrorPDU.client_address;
+		       src_port = event->RcvErrorPDU.client_port;
+		       dst_addr = event->RcvErrorPDU.server_address;
+		       dst_port = event->RcvErrorPDU.server_port;
                   break;
 
                   default:
@@ -242,7 +246,7 @@ WTPMachine *wtp_machine_find_or_create(Msg *msg, WAPEvent *event){
  * When PDU with an illegal header is received, its tcl-field is irrelevant (and possibly 
  * meaningless).
  */
-	              case RcvInvoke: case RcvErrorPDU:
+	              case RcvInvoke: 
 	                   machine = wtp_machine_create(
                                      src_addr, src_port, 
 				     dst_addr, dst_port,
@@ -727,7 +731,6 @@ WAPEvent *unpack_abort(Msg *msg, long tid, unsigned char first_octet, unsigned
 	 event->RcvAbort.client_port = msg->wdp_datagram.source_port;
 	 event->RcvAbort.server_port = msg->wdp_datagram.destination_port;
 
-
          debug("wap.wtp", 0, "WTP: unpack_abort: abort event packed");
          return event;
 }
@@ -810,6 +813,14 @@ static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid)
                   gw_free(event);
                   event = wap_event_create(RcvErrorPDU);
                   event->RcvErrorPDU.tid = tid;
+                  event->RcvErrorPDU.client_address =
+		  	octstr_duplicate(msg->wdp_datagram.source_address);
+                  event->RcvErrorPDU.server_address =
+		  	octstr_duplicate(msg->wdp_datagram.destination_address);
+                  event->RcvErrorPDU.client_port = 
+		  	msg->wdp_datagram.source_port;
+                  event->RcvErrorPDU.server_port = 
+		  	msg->wdp_datagram.destination_port;
              return event;
 
              case pdu_too_short_error:
@@ -817,6 +828,14 @@ static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid)
                   gw_free(event);
                   event = wap_event_create(RcvErrorPDU);
                   event->RcvErrorPDU.tid = tid;
+                  event->RcvErrorPDU.client_address =
+		  	octstr_duplicate(msg->wdp_datagram.source_address);
+                  event->RcvErrorPDU.server_address =
+		  	octstr_duplicate(msg->wdp_datagram.destination_address);
+                  event->RcvErrorPDU.client_port = 
+		  	msg->wdp_datagram.source_port;
+                  event->RcvErrorPDU.server_port = 
+		  	msg->wdp_datagram.destination_port;
              return event;
 
              case no_datagram: 
@@ -824,6 +843,14 @@ static WAPEvent *tell_about_error(int type, WAPEvent *event, Msg *msg, long tid)
                   gw_free(event);
                   event = wap_event_create(RcvErrorPDU);
                   event->RcvErrorPDU.tid = tid;
+                  event->RcvErrorPDU.client_address =
+		  	octstr_duplicate(msg->wdp_datagram.source_address);
+                  event->RcvErrorPDU.server_address =
+		  	octstr_duplicate(msg->wdp_datagram.destination_address);
+                  event->RcvErrorPDU.client_port = 
+		  	msg->wdp_datagram.source_port;
+                  event->RcvErrorPDU.server_port = 
+		  	msg->wdp_datagram.destination_port;
              return event;
 
              case no_concatenation:

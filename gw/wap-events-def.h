@@ -151,6 +151,10 @@ WAPEVENT(TimerTO_W,
 
 WAPEVENT(RcvErrorPDU,
      INTEGER(tid)
+      OCTSTR(client_address)
+      INTEGER(client_port)
+      OCTSTR(server_address)
+      INTEGER(server_port)
      )
 
 

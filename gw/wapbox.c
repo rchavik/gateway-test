@@ -357,7 +357,7 @@ int main(int argc, char **argv) {
 		wtp_event = wtp_unpack_wdp_datagram(msg);
                 if (wtp_event == NULL)
                    continue;
-		wtp_machine = wtp_machine_find_or_create(msg, wtp_event);
+		wtp_machine = wtp_machine_find_or_create(wtp_event);
                 if (wtp_machine == NULL) {
 		   wap_event_destroy(wtp_event);
                    continue;
