@@ -169,6 +169,8 @@ static void http_request_thread(void *arg)
 
     reply_hdrs = list_create();
     list_append(reply_hdrs, octstr_create("Content-type: text/html"));
+    list_append(reply_hdrs, octstr_create("Pragma: no-cache"));
+    list_append(reply_hdrs, octstr_create("Cache-Control: no-cache"));
 
     client = arg;
     client_ip = socket_get_peer_ip(http_socket_fd(client));

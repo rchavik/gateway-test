@@ -1,7 +1,27 @@
 2001-05-02  Richard Braakman  <dark@wapit.com>
 
+        * gwlib/octstr.c: Made octstr_get_char() not crash if pos < 0.
+        It now returns -1 instead.  This fixes a crash when using WAP
+	POST with an empty body.
+
+2001-05-02  Richard Braakman  <dark@wapit.com>
+
 	* gw/smsc_cimd2.c: Made packet_encode_message() cope if the
 	sender field is not set.
+
+2001-04-26  Richard Braakman  <dark@wapit.com>
+
+        * gw/smsc_cimd2.c: Reopen connection if SMSC does not respond
+        to "alive" request.
+
+        * gw/smsc_cimd2.c: Stopped sending "delivery request" when
+        logging in.  It is not needed in the normal configuration, and
+        it confuses some SMSCs.  Thanks to Antti Valtokari for tracking
+        this down.  (If it _is_ needed in your configuration, then you
+        will not get messages that arrived while Kannel wasn't connected.)
+
+        * doc/userguide/userguide.xml: Explain what configuration the
+       cimd2 driver expects from the SMSC.
 
 2001-04-23  Richard Braakman  <dark@wapit.com>
 
@@ -12,6 +32,10 @@
 
 	* gw/wsp-session.c: Applied a patch from Aymerick Jéhanne that
 	prevents a segmentation fault during shutdown.
+
+2001-04-10  Richard Braakman  <dark@wapit.com>
+
+	* gw/smsbox.c: Add no-cache headers to sendsms replies.
 
 2001-03-27  Richard Braakman  <dark@wapit.com>
 
