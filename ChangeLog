@@ -1,3 +1,29 @@
+2001-01-31  Peter Grönholm  <peter@wapit.com>
+
+        * doc/userguide/userguide.xml: Wrote section 'Using pre-compiled
+        binary packages'.
+
+2001-01-25  Uoti Urpala  <uau@wapit.com>
+
+        * gw/smsc_cimd.c: Fixed a possible NULL reference.
+
+2001-01-12  Tuomas Luttinen  <tuo@wapit.com>
+
+        * gw/wml_compiler.c: Now compiler can handle a libxml compiled with 
+        -DXML_USE_BUFFER_CONTENT. The content of the node is converted into 
+        an octet string with a macro.
+
+2001-01-12  Richard Braakman  <dark@wapit.com>
+
+        * gwlib/charset.c: Translate u-dieresis correctly from latin1 to GSM.
+        (It does exist in GSM Default, so it doesn't have to be approximated.)
+
+2001-01-11  Lars Wirzenius  <liw@iki.fi>
+
+        * gwlib/octstr.c: octstr_copy_real: Changed the code that checks
+        whether the length of the part to be copied is too long so that
+        it can deal with integer overflows (assuming they wrap around).
+
 2001-01-08  Richard Braakman  <dark@wapit.com>
 
 	* Making release 1.0.

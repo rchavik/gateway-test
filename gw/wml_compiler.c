@@ -284,9 +284,19 @@ static int find_prime(int from);
 static int hash_seed(Hash *table, int key);
 static int hash_recount(Hash *table);
 
+/*
+ * Macro for creating an octet string from a node content. This has two 
+ * versions for different libxml node content implementation methods.
+ */
+
+#ifdef XML_USE_BUFFER_CONTENT
+#define create_octstr_from_node(node) (octstr_create(node->content->content))
+#else
+#define create_octstr_from_node(node) (octstr_create(node->content))
+#endif
+ 
 static void lock(Hash *table);
 static void unlock(Hash *table);
-
 
 /*
  * The actual compiler function. This operates as interface to the compiler.
@@ -632,8 +642,7 @@ static int parse_attribute(xmlAttrPtr attr, wml_binary_t **wbxml)
     attribute = octstr_create(attr->name);
 
     if (attr->children != NULL)
-	value = octstr_create(attr->children->content);
-
+	value = create_octstr_from_node(attr->children);
     else 
 	value = NULL;
 
@@ -672,7 +681,7 @@ static int parse_attribute(xmlAttrPtr attr, wml_binary_t **wbxml)
     /* The rest of the attribute is coded as a inline string. */
     if (value != NULL && coded_length < (int) octstr_len(value)) {
 	if (coded_length == 0)
-	    p = octstr_create(attr->children->content); 
+	    p = create_octstr_from_node(attr->children); 
 	else
 	    p = octstr_copy(value, coded_length, octstr_len(value) - 
 			    coded_length); 
@@ -801,7 +810,7 @@ static int parse_text(xmlNodePtr node, wml_binary_t **wbxml)
     int ret;
     Octstr *temp;
 
-    temp = octstr_create(node->content);
+    temp = create_octstr_from_node(node);
 
     octstr_shrink_blanks(temp);
     octstr_strip_blanks(temp);
@@ -830,7 +839,7 @@ static int parse_cdata(xmlNodePtr node, wml_binary_t **wbxml)
     int ret = 0;
     Octstr *temp;
 
-    temp = octstr_create(node->content);
+    temp = create_octstr_from_node(node);
 
     parse_octet_string(temp, 1, wbxml);
     
@@ -1424,7 +1433,7 @@ static var_esc_t check_variable_name(xmlNodePtr node)
     if ((attr = node->properties) != NULL) {
 	while (attr != NULL) {
 	    if (strcmp(attr->name, "name") == 0) {
-		name = octstr_create(attr->children->content);
+		name = create_octstr_from_node(attr->children);
 		break;
 	    }
 	    attr = attr->next;
@@ -1458,7 +1467,7 @@ static Octstr *get_do_element_name(xmlNodePtr node)
     if ((attr = node->properties) != NULL) {
 	while (attr != NULL) {
 	    if (strcmp(attr->name, "name") == 0) {
-		name = octstr_create(attr->children->content);
+		name = create_octstr_from_node(attr->children);
 		break;
 	    }
 	    attr = attr->next;
@@ -1468,7 +1477,7 @@ static Octstr *get_do_element_name(xmlNodePtr node)
 	    attr = node->properties;
 	    while (attr != NULL) {
 		if (strcmp(attr->name, "type") == 0) {
-		    name = octstr_create(attr->children->content);
+		    name = create_octstr_from_node(attr->children);
 		    break;
 		}
 		attr = attr->next;
@@ -1645,7 +1654,7 @@ static void string_table_collect_strings(xmlNodePtr node, List *strings)
     switch (node->type) {
     case XML_TEXT_NODE:
 	if (strlen(node->content) > STRING_TABLE_MIN) {
-	    string = octstr_create(node->content);
+	    string = create_octstr_from_node(node);
 
 	    octstr_shrink_blanks(string);
 	    octstr_strip_blanks(string);
