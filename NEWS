@@ -1,9 +1,24 @@
-NEWS about Kannel: Open Source WAP and SMS Gateway version 0.10.1
+NEWS about Kannel: Open Source WAP and SMS Gateway version 0.10.3
 
 This is a STABLE version. We will maintain it and make bugfix
 releases until the next stable version, which will be numbered 0.12.
 Please do try it out and report problems to devel@kannel.org (the 
 development mailing list) or bugs@kannel.org (the bug tracking system).
+
+Changes since version 0.10.2:
+
+* No longer compiles with libxml 1.8.6.
+
+* Bugfix: WML compiler also accepts 'e', 'u', and 'n' as aliases for "noesc",
+  "unesc", and "escape".
+
+* Compile-time fix: Accept more libxml versions, including all 2.2.x ones.
+
+* Compile-time fix: Don't try to determine integer sizes (this did not
+  work on all platforms).
+
+* Various bugs and memory leaks fixed; see Changelog.
+
 
 Changes since version 0.10.1:
 
