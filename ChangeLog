@@ -1,3 +1,12 @@
+2000-07-18  Paul Keogh <paul.keogh@anam.com>
+
+	* gw/urltrans.c: Fixed memory leak in destroy_onetrans().
+
+2000-07-15 Derry Hamilton <rasilon@tardis.ed.ac.uk>
+
+	* config.h.in,configure,configure.in: Removed checks for integer
+	lengths as it broke more than it might have fixed.
+
 2000-07-13  Kalle Marjola  <rpr@wapit.com>
 
 	* */*: Making out release 0.10.2
