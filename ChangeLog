@@ -1,3 +1,34 @@
+2000-12-07  Richard Braakman  <dark@wapit.com>
+
+	* gw/smsc_smpp.c: Don't crash if a message with a data coding and
+	esm class that we don't handle arrives.
+
+2000-12-07  Lars Wirzenius  <liw@iki.fi>
+
+        * gw/smskannel.conf: Removed the "www" example service, since
+        people seem not to remove it from production installations.
+        They should, since it's potentially a security problem.
+
+2000-12-06  Richard Braakman  <dark@wapit.com>
+
+	* gw/smsc_smpp.c: Fixed memory leak in data_receive(), spotted
+        by Milko Videv.
+
+2000-12-04  Lars Wirzenius  <liw@iki.fi>
+
+        * doc/userguide/userguide.xml: Explain the syslog-level variable
+        for wapbox.
+
+2000-12-01  Lars Wirzenius  <liw@iki.fi>
+
+        * configure.in: Accept libxml 2.2.10. (Untested, since I don't
+        have 2.2.10 yet.)
+
+2000-11-27  Kalle Marjola  <rpr@wapit.com>
+
+        * doc/userguide/userguide.xml: corrected explanation of smsc-id
+        in sendsms interface chapter
+
 2000-11-08  Richard Braakman  <dark@wapit.com>
 
 	* gw/html.c, convert_html_entity(): Made conversion of entities

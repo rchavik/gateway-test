@@ -1042,7 +1042,8 @@ bearerbox-host = localhost
     <row><entry><literal>syslog-level</literal></entry>
      <entry>number</entry>
      <entry valign=bottom>
-         <emphasis>Somebody needs to explain this a bit...</emphasis>
+         Minimum log level for messages sent to syslog, the UNIX
+	 system log daemon.
      </entry></row>
 
 
@@ -2429,8 +2430,10 @@ the Kannel configuration, or 'Authorization failed' is returned.
 
    <row><entry><literal>smsc</literal></entry>
    <entry valign=bottom>
-        Optional guideline of which SMS Center is used to send the
-        message (see above). This variable can be overridden with a
+        Optional virtual smsc-id wherefrom the message is supposed to 
+	have arrived. This is used for routing purposes, if any denied
+	or preferred SMS centers are set up in SMS center
+	configuration. This variable can be overridden with a
         <literal>forced-smsc</literal> configuration
         variable. Likewise, the <literal>default-smsc</literal> variable
         can be used to set the SMSC if it is not set otherwise.

@@ -460,9 +460,9 @@ int smpp_receive_msg(SMSCenter *smsc, Msg **msg) {
 			(*msg)->smart_sms.flag_8bit = 0;
 			(*msg)->smart_sms.flag_udh = 0;
 		} else {
-			debug("bb.sms.smpp", 0, "problemss....");
-			msg_destroy(*msg);
-			*msg = NULL;
+			/* We don't handle other combinations properly yet. */
+			(*msg)->smart_sms.flag_8bit = 0;
+			(*msg)->smart_sms.flag_udh = 0;
 		}
 
 		(*msg)->smart_sms.sender = octstr_create(deliver_sm->source_addr);
@@ -782,7 +782,6 @@ static int data_receive(int fd, Octstr *to) {
 
 	long length;
 	char   data[1024];
-	Octstr *newstr = NULL;
 
 	fd_set rf;
 	struct timeval tox;
@@ -816,10 +815,7 @@ static int data_receive(int fd, Octstr *to) {
 		goto error;
 	}
 
-	newstr = octstr_create_from_data(data, length);
-
-	if(newstr == NULL) goto error;
-	octstr_insert(to, newstr, octstr_len(to));
+	octstr_append_date(to, data, length);
 
 	/* Okay, done */
 	return 1;
