@@ -251,6 +251,51 @@ WAPEvent *wtp_unpack_wdp_datagram(Msg *msg){
          return NULL;
 } /* function */
 
+void wtp_init(void) {
+     machines = list_create();
+     machine_id_counter = counter_create();
+     wtp_tid_lock = mutex_create();
+}
+
+void wtp_shutdown(void) {
+     debug("wap.wtp", 0, "wtp_shutdown: %ld machines left",
+     	   list_len(machines));
+     while (list_len(machines) > 0)
+	wtp_machine_destroy(list_extract_first(machines));
+     list_destroy(machines);
+     counter_destroy(machine_id_counter);
+     mutex_destroy(wtp_tid_lock);
+}
+
+void wtp_dispatch_event(WAPEvent *event) {
+	WTPMachine *sm;
+
+	sm = wtp_machine_find_or_create(event);
+	if (sm == NULL)
+		wap_event_destroy(event);
+	else
+		wtp_handle_event(sm, event);
+}
+
+/*****************************************************************************
+ *
+ * INTERNAL FUNCTIONS:
+ *
+ * Give the name of an event in a readable form. 
+ */
+
+static unsigned char *name_state(int s){
+
+       switch (s){
+              #define STATE_NAME(state) case state: return #state;
+              #define ROW(state, event, condition, action, new_state)
+              #include "wtp_state-decl.h"
+              default:
+                      return "unknown state";
+       }
+}
+
+
 /*
  * Feed an event to a WTP state machine. Handle all errors yourself, do not
  * report them to the caller. Note: Do not put {}s of the else block inside
@@ -307,7 +352,7 @@ static void wtp_handle_event(WTPMachine *machine, WAPEvent *event){
      return;
 }
 
-unsigned long wtp_tid_next(void){
+static unsigned long wtp_tid_next(void){
      
      mutex_lock(wtp_tid_lock);
      ++wtp_tid;
@@ -315,51 +360,6 @@ unsigned long wtp_tid_next(void){
 
      return wtp_tid;
 } 
-
-
-void wtp_init(void) {
-     machines = list_create();
-     machine_id_counter = counter_create();
-     wtp_tid_lock = mutex_create();
-}
-
-void wtp_shutdown(void) {
-     debug("wap.wtp", 0, "wtp_shutdown: %ld machines left",
-     	   list_len(machines));
-     while (list_len(machines) > 0)
-	wtp_machine_destroy(list_extract_first(machines));
-     list_destroy(machines);
-     counter_destroy(machine_id_counter);
-     mutex_destroy(wtp_tid_lock);
-}
-
-void wtp_dispatch_event(WAPEvent *event) {
-	WTPMachine *sm;
-
-	sm = wtp_machine_find_or_create(event);
-	if (sm == NULL)
-		wap_event_destroy(event);
-	else
-		wtp_handle_event(sm, event);
-}
-
-/*****************************************************************************
- *
- * INTERNAL FUNCTIONS:
- *
- * Give the name of an event in a readable form. 
- */
-
-static unsigned char *name_state(int s){
-
-       switch (s){
-              #define STATE_NAME(state) case state: return #state;
-              #define ROW(state, event, condition, action, new_state)
-              #include "wtp_state-decl.h"
-              default:
-                      return "unknown state";
-       }
-}
 
 
 static WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
