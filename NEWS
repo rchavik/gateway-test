@@ -18,6 +18,9 @@ Bugfixes:
  * URL escaping really uses a better set of "safe" characters.
    (previous bugfix was misapplied and had a reversed effect).
 
+ * In wapbox, request headers should actually override session headers of
+   the same name, rather than just being appended.  This has been corrected.
+
  * In smsbox configuration, %p, %P, %q, and %Q work again.
 
  * When wapbox is killed, it dies immediately.
