@@ -1,3 +1,8 @@
+2001-03-12  Lars Wirzenius  <liw@iki.fi>
+
+	* doc/userguide/userguide.xml: Removed reference to HTTP Basic
+	Authentication, since it isn't implemented in the code.
+
 2001-02-26  Richard Braakman  <dark@wapit.com>
 
 	* Making release 1.0.2.
