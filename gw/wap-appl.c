@@ -331,6 +331,16 @@ static void add_x_wap_tod(List *headers) {
 	octstr_destroy(gateway_time);
 }
 
+
+static void remove_body(List *headers, struct content content) {
+	octstr_destroy(content.body);
+	content.body = octstr_create("");
+	octstr_destroy(content.type);
+	content.type = octstr_create("text/plain");
+        http_header_mark_transformation(headers, content.body, content.type);
+}
+
+
 static void fetch_thread(void *arg) {
 	int status;
 	int ret;
@@ -482,6 +492,21 @@ static void fetch_thread(void *arg) {
 	if (x_wap_tod)
 		add_x_wap_tod(resp_headers);
 
+	/*
+	 * Deal with otherwise wap-aware servers that return
+	 * text/html error message if they report an error.
+	 * (Normally we leave the content type alone even if
+	 * the client doesn't claim to accept it, because the
+	 * server might know better than the gateway.)
+	 */
+	if (http_status_class(status) != HTTP_STATUS_SUCCESSFUL &&
+	    !http_type_accepted(actual_headers,
+                                octstr_get_cstr(content.type))) {
+		warning(0, "WSP: Content type <%s> not supported by client,"
+                           " deleting body.", octstr_get_cstr(content.type));
+		remove_body(resp_headers, content);
+	}
+
         /*
          * If the response is too large to be sent to the client,
  	 * suppress it and inform the client.
@@ -491,19 +516,13 @@ static void fetch_thread(void *arg) {
 		 * Only change the status if it indicated success.
 		 * If it indicated an error, then that information is
 		 * more useful to the client than our "Bad Gateway" would be.
-		 * The too-large body is probably an error page in html.
 		 */
 		if (http_status_class(status) == HTTP_STATUS_SUCCESSFUL)
 			status = HTTP_BAD_GATEWAY;
 		warning(0, "WSP: Entity at %s too large (size %ld B, limit %lu B)",
 			octstr_get_cstr(url), octstr_len(content.body),
 			client_SDU_size);
-                octstr_destroy(content.body);
-		content.body = octstr_create("");
-		octstr_destroy(content.type);
-		content.type = octstr_create("text/plain");
-		http_header_mark_transformation(resp_headers, content.body,
-					content.type);
+		remove_body(resp_headers, content);
 	}
 
 	if (content.body == NULL)
