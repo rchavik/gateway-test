@@ -77,11 +77,49 @@ static void wtp_machine_destroy(WTPMachine *sm);
 
 
 /*
+ * Checks whether wtp machines data structure includes a spesific machine.
+ * The machine in question is identified with with source and destination
+ * address and port and tid. Address information is fetched from message
+ * fields, tid from an field of the event. If the machine does not exist and
+ * the event is RcvInvoke, a new machine is created and added in the machines
+ * data structure. If the event was RcvAck or RcvAbort, the event is ignored.
+ * If the event is RcvErrorPDU, new machine is created.
+ */
+static WTPMachine *wtp_machine_find_or_create(WAPEvent *event);
+
+
+/*
  * Feed an event to a WTP state machine. Handle all errors by itself, do not 
  * report them to the caller. Generate a pointer to WSP event, if an indication 
  * or a confirmation is required.
  */
 static void wtp_handle_event(WTPMachine *machine, WAPEvent *event);
+
+/*
+ * Creates wtp machine having addsress quintuple and transaction class 
+ * iniatilised. If machines list is busy, just waits.
+ */ 
+WTPMachine *wtp_machine_create(Octstr *srcaddr, long srcport,
+				Octstr *destaddr, long destport, long tid,
+				long tcl);
+
+/*
+ * Mark a WTP state machine unused. Normally, removing a state machine from the state 
+ * machines list means marking turning off a flag.  If machines list is busy, just wait.
+ */
+void wtp_machine_mark_unused(WTPMachine *machine);
+
+
+/*
+ * Output the state of the machine and all its fields.
+ */
+void wtp_machine_dump(WTPMachine  *machine);
+
+
+/*
+ * Generates a new transaction handle by incrementing the previous one by one.
+ */
+unsigned long wtp_tid_next(void);
 
 /*
  * Print a wtp event or a wtp machine state name as a string.
@@ -187,7 +225,7 @@ void wtp_machine_dump(WTPMachine *machine){
 }
 
 
-WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
+static WTPMachine *wtp_machine_find_or_create(WAPEvent *event){
 
           WTPMachine *machine = NULL;
           long tid;
