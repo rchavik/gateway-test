@@ -8,12 +8,21 @@ development mailing list) or bugs@kannel.org (the bug tracking system).
 
 Changes since version 0.12.1:
 
+New features:
+
+ * WSP: Support for X-WAP.TOD header, needed for WAP 1.1 conformance.
+
 Bugfixes:
 
  * WSP: Corrected handling of invalid Expires headers to conform to RFC2068.
 
  * WSP: Corrected encoding of date values that are exactly the start of
    the epoch (Thu, 01 Jan 1970 00:00:00 GMT).
+
+ * WML compiler now allows reserved words as variable names, such
+   as $(password).
+
+ * Minor fixes to WML compiler for WAP 1.1 conformance.
 
 
 Changes since version 0.12:
