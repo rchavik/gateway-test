@@ -1,5 +1,9 @@
 2000-12-21  Richard Braakman  <dark@wapit.com>
 
+	* Making release 0.12.4.
+
+2000-12-21  Richard Braakman  <dark@wapit.com>
+
 	* gw/smsc_emi.c: Don't panic is allow_ip is NULL.
 
 2000-12-18  Peter Grönholm  <peter@wapit.com>

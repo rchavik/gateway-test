@@ -1,10 +1,19 @@
-NEWS about Kannel: Open Source WAP and SMS Gateway version 0.12.2
+NEWS about Kannel: Open Source WAP and SMS Gateway version 0.12.4
 
 This is a STABLE version. We will maintain it and make bugfix
 releases until the next stable version is released.  It is a
 candidate for version 1.0.
 Please try it out and report problems to devel@kannel.org (the 
 development mailing list) or bugs@kannel.org (the bug tracking system).
+
+Changes since version 0.12.3:
+
+ * Fixed two memory leaks in SMPP driver.
+
+ * Corrected spelling of "accept-charset" in WML compiler.
+
+ * In UCP/EMI driver, do not panic if allow_ip is not set.
+
 
 Changes since version 0.12.2:
 
