@@ -8,12 +8,17 @@ set -e
 # postinst. We first try to set the ownership of /var/log/kannel. If that
 # fails, we create the user and re-try. If that still fails, we abort.
 
-if chown kannel.root /var/log/kannel 2>/dev/null
+if chown kannel:root /var/log/kannel 2>/dev/null
 then
     :
-elif adduser --system --group kannel
+elif adduser --system --no-create-home --group kannel
 then
-    chown kannel.root /var/log/kannel
+    chown kannel:root /var/log/kannel
+else
+    echo "Cannot create user kannel and/or group kannel." 1>&2
+    echo "Must have those before kannel can be installed." 1>&2
+    echo "Sorry." 1>&2
+    exit 1
 fi
 
 # /var/log/kannel contains potentially sensitive information, such as

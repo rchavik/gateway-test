@@ -1,3 +1,19 @@
+kannel (1.0-1) unstable; urgency=low
+
+  * New upstream version 1.0. (And 0.12.4, but I didn't have the time
+    to package that.)
+  * Changes to Debian packaging:
+  * Manual pages refer to /usr/share/doc instead of /usr/doc. Closes: #81468.
+  * The user guide (.html and .ps) is installed. Closes: #81469.
+    (The architecture guide is not, since this version is seriously
+    outdated.)
+  * Don't create /home/kannel, use --no-create-home with adduser.
+    Closes: #80617.
+  * postinst: Use user:group instead of user.group for chown. Also give
+    error message if kannel user and group creation fails.
+
+ -- Lars Wirzenius <liw@iki.fi>  Thu, 11 Jan 2001 16:17:49 +0200
+
 kannel (0.12.3-1) unstable; urgency=low
 
   * New upstream version 0.12.3. (And 0.12.2, but I didn't have the time
