@@ -1301,6 +1301,7 @@ static int pack_content_type(Octstr *packet, Octstr *value);
 static int pack_credentials(Octstr *packet, Octstr *value);
 static int pack_date(Octstr *packet, Octstr *value);
 static int pack_encoding(Octstr *packet, Octstr *value);
+static int pack_expires(Octstr *packet, Octstr *value);
 static int pack_field_name(Octstr *packet, Octstr *value);
 static int pack_if_range(Octstr *packet, Octstr *value);
 static int pack_integer_string(Octstr *packet, Octstr *value);
@@ -1353,7 +1354,7 @@ struct headerinfo headerinfo[] =
         { WSP_HEADER_CONTENT_TYPE, pack_content_type, 0 },
         { WSP_HEADER_DATE, pack_date, 0 },
         { WSP_HEADER_ETAG, pack_text, 0 },
-        { WSP_HEADER_EXPIRES, pack_date, 0 },
+        { WSP_HEADER_EXPIRES, pack_expires, 0 },
         { WSP_HEADER_FROM, pack_text, 0 },
         { WSP_HEADER_HOST, pack_text, 0 },
         { WSP_HEADER_IF_MODIFIED_SINCE, pack_date, 0 },
@@ -2481,6 +2482,25 @@ static int pack_content_type(Octstr *packed, Octstr *value)
     /* The expansion of Content-type-value works out to be
      * equivalent to Accept-value. */ 
     return pack_accept(packed, value);
+}
+
+static int pack_expires(Octstr *packed, Octstr *value)
+{
+    int ret;
+
+    ret = pack_date(packed, value);
+
+    if (ret < 0) {
+	/* Responses with an invalid Expires header should be treated
+	as already expired.  If we just skip this header, then the client
+	won't know that.  So we encode one with a date far in the past. */
+	/* A Date-value is always encoded as a Long-integer, even if it
+	 * would fit in a Short-integer. */
+	pack_long_integer(packed, 0);
+	ret = 0;
+    }
+
+    return ret;
 }
 
 static int pack_if_range(Octstr *packed, Octstr *value)

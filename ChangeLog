@@ -1,3 +1,10 @@
+2000-11-03  Richard Braakman  <dark@wapit.com>
+
+	* gw/wsp_headers.c: If an Expires header has an invalid date, then
+	encode it as a date far in the past.  We can't just skip the header
+	because RFC2068 says such a response should be treated as already
+	expired, and we have to tell the client to do that.
+      
 2000-10-27  Richard Braakman  <dark@wapit.com>
 
 	* Making release 0.12.1.
