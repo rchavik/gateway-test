@@ -1,3 +1,8 @@
+2000-10-13  Tuomas Luttinen  <tuo@wapit.com>
+
+	* gw/wml_compiler.c: parse_entities added as a fast patch to fullfill
+	WAP 1.1 conformance with WML entities.
+
 2000-10-12  Kalle Marjola  <rpr@wapit.com>
 
 	* doc/userguide/userguide.xml: added new example: multi-operator
