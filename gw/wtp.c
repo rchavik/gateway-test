@@ -747,6 +747,13 @@ WAPEvent *unpack_invoke(Msg *msg, long tid,
  
 	 event->RcvInvoke.user_data = 
 	 	octstr_duplicate(msg->wdp_datagram.user_data); 
+	
+	 event->RcvInvoke.client_address = 
+	 	octstr_duplicate(msg->wdp_datagram.source_address);
+	 event->RcvInvoke.server_address = 
+	 	octstr_duplicate(msg->wdp_datagram.destination_address);
+	 event->RcvInvoke.client_port = msg->wdp_datagram.source_port;
+	 event->RcvInvoke.server_port = msg->wdp_datagram.destination_port;
          return event;
 }
 
