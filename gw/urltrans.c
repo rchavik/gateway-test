@@ -669,7 +669,7 @@ static void encode_for_url(char *buf, char *str) {
 	
 	ustr = str;
 	while (*ustr != '\0') {
-		if (!is_safe[*ustr])
+		if (is_safe[*ustr])
 			*buf++ = *ustr++;
 		else {
 			*buf++ = '%';

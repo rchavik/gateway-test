@@ -1,9 +1,20 @@
-NEWS about Kannel: Open Source WAP and SMS Gateway version 0.12
+NEWS about Kannel: Open Source WAP and SMS Gateway version 0.12.1
 
 This is a STABLE version. We will maintain it and make bugfix
 releases until the next stable version is released.
 Please do try it out and report problems to devel@kannel.org (the 
 development mailing list) or bugs@kannel.org (the bug tracking system).
+
+Changes since version 0.12:
+
+Bugfixes:
+
+ * URL escaping really uses a better set of "safe" characters.
+   (previous bugfix was misapplied and had a reversed effect).
+
+ * The WMLScript library for phonebook functions is called "PhoneBook",
+   not "Phonebook".
+
 
 Changes since version 0.10:
 
