@@ -436,6 +436,16 @@ void wtp_shutdown(void) {
      mutex_destroy(wtp_tid_lock);
 }
 
+void wtp_dispatch_event(WAPEvent *event) {
+	WTPMachine *sm;
+
+	sm = wtp_machine_find_or_create(event);
+	if (sm == NULL)
+		wap_event_destroy(event);
+	else
+		wtp_handle_event(sm, event);
+}
+
 /*****************************************************************************
  *
  * INTERNAL FUNCTIONS:

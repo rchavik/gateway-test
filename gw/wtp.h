@@ -182,6 +182,8 @@ void wtp_machine_dump(WTPMachine  *machine);
  */
 void wtp_handle_event(WTPMachine *machine, WAPEvent *event);
 
+void wtp_dispatch_event(WAPEvent *event);
+
 /*
  * Generates a new transaction handle by incrementing the previous one by one.
  */
