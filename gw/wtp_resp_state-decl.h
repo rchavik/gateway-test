@@ -118,8 +118,8 @@ ROW(LISTEN,
      resp_machine->tcl = event->u.RcvInvoke.tcl;
      resp_machine->invoke_indication = create_tr_invoke_ind(resp_machine, 
                                        event->u.RcvInvoke.user_data);
-     debug("wap.wtp", 0, "WTP_STATE: generating invoke indication, tid being 
-           invalid");
+     debug("wap.wtp", 0, "WTP_STATE: generating invoke indication, tid being "
+           "invalid");
     },
     TIDOK_WAIT)
 
