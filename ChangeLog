@@ -1,3 +1,7 @@
+2000-10-27  Richard Braakman  <dark@wapit.com>
+
+	* Making release 0.12.1.
+
 2000-10-26  Richard Braakman  <dark@wapit.com>
 
 	* gw/wap-appl.c: Use http_header_combine instead of
