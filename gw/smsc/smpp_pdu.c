@@ -71,6 +71,117 @@
 #define MAX_SMPP_PDU_LEN    (7424)
 
 
+struct smpp_tlv {
+    Octstr *name;
+    long tag;
+    long length;
+    enum { SMPP_TLV_OCTETS = 0, SMPP_TLV_NULTERMINATED = 1, SMPP_TLV_INTEGER = 2 } type;
+};
+
+
+static Dict *tlv_by_tag;
+static Dict *tlv_by_name;
+static int initialized;
+
+
+static void smpp_tlv_destroy(struct smpp_tlv *tlv)
+{
+    if (tlv == NULL)
+        return;
+    octstr_destroy(tlv->name);
+    gw_free(tlv);
+}
+
+
+int smpp_pdu_init(Cfg *cfg)
+{
+    CfgGroup *grp;
+    List *l;
+
+    if (initialized)
+        return 0;
+
+    l = cfg_get_multi_group(cfg, octstr_imm("smpp-tlv"));
+    tlv_by_tag = dict_create(gwlist_len(l) > 0 ? gwlist_len(l) : 1, (void(*)(void*))smpp_tlv_destroy);
+    tlv_by_name = dict_create(gwlist_len(l) > 0 ? gwlist_len(l) : 1, NULL);
+    while (l != NULL && (grp = gwlist_extract_first(l)) != NULL) {
+        struct smpp_tlv *tlv;
+        Octstr *tmp;
+
+        tlv = gw_malloc(sizeof(*tlv));
+        if ((tlv->name = cfg_get(grp, octstr_imm("name"))) == NULL) {
+            error(0, "SMPP: Unable to get name for smpp-tlv.");
+            smpp_tlv_destroy(tlv);
+            goto failed;
+        }
+        if (cfg_get_integer(&tlv->tag, grp, octstr_imm("tag")) == -1) {
+            error(0, "SMPP: Unable to get tag for smpp-tlv.");
+            smpp_tlv_destroy(tlv);
+            goto failed;
+        }
+        if (cfg_get_integer(&tlv->length, grp, octstr_imm("length")) == -1) {
+            error(0, "SMPP: Unable to get length for smpp-tlv.");
+            smpp_tlv_destroy(tlv);
+            goto failed;
+        }
+        if ((tmp = cfg_get(grp, octstr_imm("type"))) == NULL) {
+            error(0, "SMPP: Unable to get type for smpp-tlv.");
+            smpp_tlv_destroy(tlv);
+            goto failed;
+        }
+        if (octstr_str_case_compare(tmp, "octetstring") == 0)
+            tlv->type = SMPP_TLV_OCTETS;
+        else if (octstr_str_case_compare(tmp, "nulterminated") == 0)
+            tlv->type = SMPP_TLV_NULTERMINATED;
+        else if (octstr_str_case_compare(tmp, "integer") == 0)
+            tlv->type = SMPP_TLV_INTEGER;
+        else {
+            error(0, "SMPP: Unknown type for smpp-tlv: `%s'", octstr_get_cstr(tmp));
+            octstr_destroy(tmp);
+            smpp_tlv_destroy(tlv);
+            goto failed;
+        }
+        octstr_destroy(tmp);
+        /* put into dict */
+        if (!dict_put_once(tlv_by_name, tlv->name, tlv)) {
+            error(0, "SMPP: Double TLV name %s found.", octstr_get_cstr(tlv->name));
+            smpp_tlv_destroy(tlv);
+            goto failed;
+        }
+        tmp = octstr_format("%ld", tlv->tag);
+        if (!dict_put_once(tlv_by_tag, tmp, tlv)) {
+            error(0, "SMPP: Double TLV tag %s found.", octstr_get_cstr(tmp));
+            octstr_destroy(tmp);
+            goto failed;
+        }
+        octstr_destroy(tmp);
+    }
+    gwlist_destroy(l, NULL);
+
+    initialized = 1;
+    return 0;
+
+failed:
+    dict_destroy(tlv_by_tag);
+    dict_destroy(tlv_by_name);
+    return -1;
+}
+
+
+int smpp_pdu_shutdown(void)
+{
+    if (initialized == 0)
+        return 0;
+
+    initialized = 0;
+    dict_destroy(tlv_by_tag);
+    dict_destroy(tlv_by_name);
+    tlv_by_tag = tlv_by_name = NULL;
+
+    return 0;
+}
+
+
 static long decode_integer(Octstr *os, long pos, int octets)
 {
     unsigned long u;
@@ -101,7 +212,7 @@ static int copy_until_nul(const char *field_name, Octstr *os, long *pos, long ma
     long nul;
 
     *data = NULL;
-
+    
     nul = octstr_search_char(os, '\0', *pos);
     if (nul == -1) {
         warning(0, "SMPP: PDU NULL terminated string (%s) has no NULL.", field_name);
@@ -129,7 +240,7 @@ SMPP_PDU *smpp_pdu_create(unsigned long type, unsigned long seq_no)
     #define TLV_INTEGER(name, octets) p->name = -1;
     #define TLV_NULTERMINATED(name, max_len) p->name = NULL;
     #define TLV_OCTETS(name, min_len, max_len) p->name = NULL;
-    #define OPTIONAL_END
+    #define OPTIONAL_END p->tlv = dict_create(1024, octstr_destroy_item);
     #define INTEGER(name, octets) p->name = 0;
     #define NULTERMINATED(name, max_octets) p->name = NULL;
     #define OCTETS(name, field_giving_octetst) p->name = NULL;
@@ -161,7 +272,7 @@ void smpp_pdu_destroy(SMPP_PDU *pdu)
     #define TLV_INTEGER(name, octets) p->name = -1;
     #define TLV_NULTERMINATED(name, max_octets) octstr_destroy(p->name);
     #define TLV_OCTETS(name, min_len, max_len) octstr_destroy(p->name);
-    #define OPTIONAL_END
+    #define OPTIONAL_END dict_destroy(p->tlv);
     #define INTEGER(name, octets) p->name = 0; /* Make sure "p" is used */
     #define NULTERMINATED(name, max_octets) octstr_destroy(p->name);
     #define OCTETS(name, field_giving_octets) octstr_destroy(p->name);
@@ -230,7 +341,55 @@ Octstr *smpp_pdu_pack(SMPP_PDU *pdu)
                 octstr_append(os, p->name); \
             } \
         }
-    #define OPTIONAL_END
+    #define OPTIONAL_END \
+        if (p->tlv != NULL) { \
+            Octstr *key; \
+            List *keys; \
+            struct smpp_tlv *tlv; \
+            keys = dict_keys(p->tlv); \
+            while(keys != NULL && (key = gwlist_extract_first(keys)) != NULL) { \
+                tlv = dict_get(tlv_by_name, key); \
+                if (tlv == NULL) { \
+                    error(0, "SMPP: Unknown TLV `%s', don't send.", octstr_get_cstr(key)); \
+                    octstr_destroy(key); \
+                    continue; \
+                } \
+                switch(tlv->type) { \
+                case SMPP_TLV_INTEGER: { \
+                    long val = atol(octstr_get_cstr(dict_get(p->tlv, key))); \
+                    append_encoded_integer(os, tlv->tag, 2); \
+                    append_encoded_integer(os, tlv->length, 2); \
+                    append_encoded_integer(os, val, tlv->length); \
+                    break; \
+                } \
+                case SMPP_TLV_OCTETS: \
+                case SMPP_TLV_NULTERMINATED: { \
+                    Octstr *val = dict_get(p->tlv, key); \
+                    unsigned long len = octstr_len(val); \
+                    if (len > tlv->length) { \
+                        error(0, "SMPP: Optional field (%s) with invalid length (%ld) (should be %ld) dropped.", \
+                              octstr_get_cstr(key), len, tlv->length);\
+                        octstr_destroy(key); \
+                        continue; \
+                    } \
+                    append_encoded_integer(os, tlv->tag, 2); \
+                    if (tlv->type == SMPP_TLV_NULTERMINATED) \
+                        append_encoded_integer(os, len + 1, 2); \
+                    else \
+                        append_encoded_integer(os, len, 2); \
+                    octstr_append(os, val); \
+                    if (tlv->type == SMPP_TLV_NULTERMINATED) \
+                        octstr_append_char(os, '\0'); \
+                    break; \
+                } \
+                default: \
+                    panic(0, "SMPP: Internal error, unknown configured TLV type %d.", tlv->type); \
+                    break; \
+                } \
+                octstr_destroy(key); \
+            } \
+            gwlist_destroy(keys, octstr_destroy_item); \
+        }
     #define INTEGER(name, octets) \
         append_encoded_integer(os, p->name, octets);
     #define NULTERMINATED(name, max_octets) \
@@ -332,13 +491,57 @@ SMPP_PDU *smpp_pdu_unpack(Octstr *data_without_len)
                 } else
     #define OPTIONAL_END \
                 { \
-                    Octstr *val = octstr_copy(data_without_len, pos, opt_len); \
-                    if (val) octstr_binary_to_hex(val, 0); \
-                    else val = octstr_create(""); \
-                    warning(0, "SMPP: Unknown TLV(0x%04lx,0x%04lx,%s) for PDU type (%s) received!", \
-                            opt_tag, opt_len, octstr_get_cstr(val), pdu->type_name); \
-                    pos += opt_len; \
-                    octstr_destroy(val); \
+                    Octstr *val = NULL; \
+                    struct smpp_tlv *tlv; \
+                    Octstr *tmp = octstr_format("%ld", opt_tag); \
+                    /* check configured TLVs */ \
+                    tlv = dict_get(tlv_by_tag, tmp); \
+                    octstr_destroy(tmp); \
+                    if (tlv != NULL) { \
+                        /* found configured tlv */ \
+                        /* check length */ \
+                        if (opt_len > tlv->length) { \
+                            error(0, "SMPP: Optional field (%s) with invalid length (%ld) (should be %ld) dropped.", \
+                                  octstr_get_cstr(tlv->name), opt_len, tlv->length); \
+                            pos += opt_len; \
+                            continue; \
+                        } \
+                        switch (tlv->type) { \
+                        case SMPP_TLV_INTEGER: { \
+                            long val_i; \
+                            if ((val_i = decode_integer(data_without_len, pos, opt_len)) == -1) \
+                                goto err; \
+                            val = octstr_format("%ld", val_i); \
+                            dict_put(p->tlv, tlv->name, val); \
+                            pos += opt_len; \
+                            break; \
+                        } \
+                        case SMPP_TLV_OCTETS: { \
+                            val = octstr_copy(data_without_len, pos, opt_len); \
+                            dict_put(p->tlv, tlv->name, val); \
+                            pos += opt_len; \
+                            break; \
+                        } \
+                        case SMPP_TLV_NULTERMINATED: { \
+                            if (copy_until_nul(octstr_get_cstr(tlv->name), data_without_len, &pos, opt_len, &val) == 0) \
+                                dict_put(p->tlv, tlv->name, val); \
+                            break; \
+                        } \
+                        default: \
+                            panic(0, "SMPP: Internal error, unknown configured TLV type %d.", tlv->type); \
+                            break; \
+                        } \
+                    } else { \
+                        val = octstr_copy(data_without_len, pos, opt_len); \
+                        if (val) \
+                            octstr_binary_to_hex(val, 0); \
+                        else \
+                            val = octstr_create(""); \
+                        warning(0, "SMPP: Unknown TLV(0x%04lx,0x%04lx,%s) for PDU type (%s) received!", \
+                              opt_tag, opt_len, octstr_get_cstr(val), pdu->type_name); \
+                        octstr_destroy(val); \
+                        pos += opt_len; \
+                    } \
                 } \
             } \
         }
@@ -394,7 +597,17 @@ void smpp_pdu_dump(SMPP_PDU *pdu)
         if (p->name != NULL) { \
             OCTETS(name, max_len) \
         }
-    #define OPTIONAL_END
+    #define OPTIONAL_END \
+        if (p->tlv != NULL) { \
+            List *keys; \
+            Octstr *key; \
+            keys = dict_keys(p->tlv); \
+            while(keys != NULL && (key = gwlist_extract_first(keys)) != NULL) { \
+                octstr_dump_short(dict_get(p->tlv, key), 2, octstr_get_cstr(key)); \
+                octstr_destroy(key); \
+            } \
+            gwlist_destroy(keys, octstr_destroy_item); \
+        }
     #define INTEGER(name, octets) \
         debug("sms.smpp", 0, "  %s: %lu = 0x%08lx", #name, p->name, p->name);
     #define NULTERMINATED(name, max_octets) \

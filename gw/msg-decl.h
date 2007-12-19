@@ -109,6 +109,7 @@ MSG(sms,
 		INTEGER(priority);
                 INTEGER(resend_try);
                 INTEGER(resend_time);
+                OCTSTR(meta_data);
 	})
 
 MSG(ack,

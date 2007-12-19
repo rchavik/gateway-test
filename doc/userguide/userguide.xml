@@ -6073,6 +6073,10 @@ the SMS ID of the internal message structure
 the delivery report value
 </entry></row>
 
+<row><entry><literal>%D</literal></entry><entry>
+the Meta-Data value
+</entry></row>
+
 <row><entry><literal>%A</literal></entry><entry>
 the delivery report SMSC reply, if any
 </entry></row>
