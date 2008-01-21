@@ -1,3 +1,10 @@
+2008-01-21  Stipe Tolj  <stolj at kannel.org>
+   * gw/smsc/smsc_smpp.c: fixed segfault while DLR processing. Thanks to
+     Giulio Harding <giulio.harding at mnetcorporation.com> for bug report
+     and Alex for providing instantly the patch.
+     [Msg-Id: <48AC4D32-2747-4C7C-AEAF-F87D789D2DAC@mnetcorporation.com>]
+     [Msg-Id: <fn2e0o$qt3$1@ger.gmane.org>]
+
 2007-10-18 Alexander Malysh <amalysh at kannel.org>
    * gw/bb_smscconn.c: fixed segfault when concat handler disabled.
      Thanks to Vincent CHAVANIS for patch.

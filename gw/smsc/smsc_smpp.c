@@ -1365,11 +1365,10 @@ static void handle_pdu(SMPP *smpp, Connection *conn, SMPP_PDU *pdu,
                       octstr_get_cstr(smpp->conn->id));
                 dlrmsg = handle_dlr(smpp, pdu->u.data_sm.source_addr, NULL, pdu->u.data_sm.message_payload,
                                     pdu->u.data_sm.receipted_message_id, pdu->u.data_sm.message_state);
-                if (dlrmsg->sms.meta_data == NULL)
-                    dlrmsg->sms.meta_data = octstr_create("");
-                meta_data_set_values(msg->sms.meta_data, pdu->u.data_sm.tlv, "smpp");
-
                 if (dlrmsg != NULL) {
+                    if (dlrmsg->sms.meta_data == NULL)
+                        dlrmsg->sms.meta_data = octstr_create("");
+                    meta_data_set_values(dlrmsg->sms.meta_data, pdu->u.data_sm.tlv, "smpp");
                     /* passing DLR to upper layer */
                     reason = bb_smscconn_receive(smpp->conn, dlrmsg);
                 } else {
@@ -1424,14 +1423,13 @@ static void handle_pdu(SMPP *smpp, Connection *conn, SMPP_PDU *pdu,
 
                 dlrmsg = handle_dlr(smpp, pdu->u.deliver_sm.source_addr, pdu->u.deliver_sm.short_message, pdu->u.deliver_sm.message_payload,
                                     pdu->u.deliver_sm.receipted_message_id, pdu->u.deliver_sm.message_state);
-                if (dlrmsg->sms.meta_data == NULL)
-                    dlrmsg->sms.meta_data = octstr_create("");
-                meta_data_set_values(msg->sms.meta_data, pdu->u.deliver_sm.tlv, "smpp");
-                resp = smpp_pdu_create(deliver_sm_resp,
-                            pdu->u.deliver_sm.sequence_number);
-                if (dlrmsg != NULL)
+                resp = smpp_pdu_create(deliver_sm_resp, pdu->u.deliver_sm.sequence_number);
+                if (dlrmsg != NULL) {
+                    if (dlrmsg->sms.meta_data == NULL)
+                        dlrmsg->sms.meta_data = octstr_create("");
+                    meta_data_set_values(dlrmsg->sms.meta_data, pdu->u.deliver_sm.tlv, "smpp");
                     reason = bb_smscconn_receive(smpp->conn, dlrmsg);
-                else
+                } else
                     reason = SMSCCONN_SUCCESS;
                 resp->u.deliver_sm_resp.command_status = smscconn_failure_reason_to_smpp_status(reason);
             } else {/* MO-SMS */
