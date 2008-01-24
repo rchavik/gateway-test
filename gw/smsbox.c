@@ -1,7 +1,7 @@
 /* ==================================================================== 
  * The Kannel Software License, Version 1.0 
  * 
- * Copyright (c) 2001-2007 Kannel Group  
+ * Copyright (c) 2001-2008 Kannel Group  
  * Copyright (c) 1998-2001 WapIT Ltd.   
  * All rights reserved. 
  * 
@@ -3333,6 +3333,7 @@ static Cfg *init_smsbox(Cfg *cfg)
     long lvl;
     Octstr *http_proxy_host = NULL;
     long http_proxy_port = -1;
+    int http_proxy_ssl = 0;
     List *http_proxy_exceptions = NULL;
     Octstr *http_proxy_username = NULL;
     Octstr *http_proxy_password = NULL;
@@ -3361,6 +3362,9 @@ static Cfg *init_smsbox(Cfg *cfg)
 #endif /* HAVE_LIBSSL */
 
     cfg_get_integer(&http_proxy_port, grp, octstr_imm("http-proxy-port"));
+#ifdef HAVE_LIBSSL
+    cfg_get_bool(&http_proxy_ssl, grp, octstr_imm("http-proxy-ssl"));
+#endif /* HAVE_LIBSSL */
 
     http_proxy_host = cfg_get(grp, 
     	    	    	octstr_imm("http-proxy-host"));
@@ -3535,7 +3539,7 @@ static Cfg *init_smsbox(Cfg *cfg)
     }
 
     if (http_proxy_host != NULL && http_proxy_port > 0) {
-    	http_use_proxy(http_proxy_host, http_proxy_port,
+    	http_use_proxy(http_proxy_host, http_proxy_port, http_proxy_ssl,
 		       http_proxy_exceptions, http_proxy_username,
                        http_proxy_password, http_proxy_exceptions_regex);
     }

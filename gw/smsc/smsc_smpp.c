@@ -1,7 +1,7 @@
 /* ==================================================================== 
  * The Kannel Software License, Version 1.0 
  * 
- * Copyright (c) 2001-2007 Kannel Group  
+ * Copyright (c) 2001-2008 Kannel Group  
  * Copyright (c) 1998-2001 WapIT Ltd.   
  * All rights reserved. 
  * 
@@ -1334,13 +1334,12 @@ static void handle_pdu(SMPP *smpp, Connection *conn, SMPP_PDU *pdu,
 {
     SMPP_PDU *resp;
     Octstr *os;
-    Msg *msg, *dlrmsg;
+    Msg *msg, *dlrmsg = NULL;
     long reason;
     long cmd_stat;
     struct smpp_msg *smpp_msg = NULL;
 
     resp = NULL;
-    msg = dlrmsg = NULL;
 
     switch (pdu->type) {
         case data_sm:

@@ -1,7 +1,7 @@
 /* ==================================================================== 
  * The Kannel Software License, Version 1.0 
  * 
- * Copyright (c) 2001-2007 Kannel Group  
+ * Copyright (c) 2001-2008 Kannel Group  
  * Copyright (c) 1998-2001 WapIT Ltd.   
  * All rights reserved. 
  * 
@@ -100,6 +100,7 @@ int smpp_pdu_init(Cfg *cfg)
 
     if (initialized)
         return 0;
+
 
     l = cfg_get_multi_group(cfg, octstr_imm("smpp-tlv"));
     tlv_by_tag = dict_create(gwlist_len(l) > 0 ? gwlist_len(l) : 1, (void(*)(void*))smpp_tlv_destroy);
