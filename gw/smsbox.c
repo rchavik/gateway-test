@@ -1049,7 +1049,7 @@ static void fill_message(Msg *msg, URLTranslation *trans,
             msg->sms.meta_data = meta_data;
         } else {
             warning(0, "Tried to set Meta-Data field, denied.");
-            O_DESTROY(meta_data);
+            octstr_destroy(meta_data);
         }
     }
 }
@@ -2312,7 +2312,7 @@ static Octstr *smsbox_req_handle(URLTranslation *t, Octstr *client_ip,
 	goto field_error;
     }
 
-    msg->sms.meta_data = meta_data;
+    msg->sms.meta_data = octstr_duplicate(meta_data);
 
     msg->sms.receiver = NULL;
 
@@ -2574,7 +2574,7 @@ static Octstr *smsbox_req_sendsms(List *args, Octstr *client_ip, int *status,
     if(tmp_string != NULL)
         sscanf(octstr_get_cstr(tmp_string),"%d", &priority);
     
-    meta_data = octstr_duplicate(http_cgi_variable(args, "meta-data"));
+    meta_data = http_cgi_variable(args, "meta-data");
 
     /*
      * we required "to" to be defined
