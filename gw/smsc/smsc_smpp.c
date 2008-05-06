@@ -151,6 +151,8 @@ typedef struct {
     long bind_addr_npi;
     int transmit_port; 
     int receive_port; 
+    int transmit_port_ssl; 
+    int receive_port_ssl; 
     int quitting; 
     long enquire_link_interval;
     long max_pending_submits;
@@ -206,9 +208,9 @@ static void smpp_msg_destroy(struct smpp_msg *msg, int destroy_msg)
 }
 
  
-static SMPP *smpp_create(SMSCConn *conn, Octstr *host, int transmit_port,  
-    	    	    	 int receive_port, Octstr *system_type,  
-                         Octstr *username, Octstr *password, 
+static SMPP *smpp_create(SMSCConn *conn, Octstr *host, int transmit_port,
+                         int transmit_port_ssl, int receive_port, int receive_port_ssl,
+                         Octstr *system_type, Octstr *username, Octstr *password, 
     	    	    	 Octstr *address_range,
                          int source_addr_ton, int source_addr_npi,  
                          int dest_addr_ton, int dest_addr_npi, 
@@ -243,6 +245,8 @@ static SMPP *smpp_create(SMSCConn *conn, Octstr *host, int transmit_port,
     smpp->service_type = octstr_duplicate(service_type);
     smpp->transmit_port = transmit_port; 
     smpp->receive_port = receive_port; 
+    smpp->transmit_port_ssl = transmit_port_ssl; 
+    smpp->receive_port_ssl = receive_port_ssl; 
     smpp->enquire_link_interval = enquire_link_interval;
     smpp->max_pending_submits = max_pending_submits; 
     smpp->quitting = 0; 
@@ -478,9 +482,11 @@ static Msg *pdu_to_msg(SMPP *smpp, SMPP_PDU *pdu, long *reason)
         pdu->u.deliver_sm.short_message = NULL;
     }
 
+    dcs_to_fields(&msg, pdu->u.deliver_sm.data_coding);
+
     /*
      * Encode udh if udhi set
-     * for reference see GSM03.40, section 9.2.3.24
+     * for reference see GSM 03.40, section 9.2.3.24
      */
     if (pdu->u.deliver_sm.esm_class & ESM_CLASS_SUBMIT_UDH_INDICATOR) {
         int udhl;
@@ -496,9 +502,12 @@ static Msg *pdu_to_msg(SMPP *smpp, SMPP_PDU *pdu, long *reason)
         }
         msg->sms.udhdata = octstr_copy(msg->sms.msgdata, 0, udhl);
         octstr_delete(msg->sms.msgdata, 0, udhl);
+        msg->sms.coding = DC_8BIT;
     }
-
-    dcs_to_fields(&msg, pdu->u.deliver_sm.data_coding);
+    
+    /* ### */
+    debug("",0, "XXX after dcs_to_fields in pdu_to_msg:");
+    msg_dump(msg, 0);
 
     /* handle default data coding */
     switch (pdu->u.deliver_sm.data_coding) {
@@ -512,7 +521,8 @@ static Msg *pdu_to_msg(SMPP *smpp, SMPP_PDU *pdu, long *reason)
                     error(0, "Failed to convert msgdata from charset <%s> to <%s>, will leave as is.",
                              octstr_get_cstr(smpp->alt_charset), SMPP_DEFAULT_CHARSET);
                 msg->sms.coding = DC_7BIT;
-            } else { /* assume GSM 03.38 7-bit alphabet */
+            } 
+            else if(msg->sms.coding != DC_8BIT) { /* assume GSM 03.38 7-bit alphabet */
                 charset_gsm_to_utf8(msg->sms.msgdata);
                 msg->sms.coding = DC_7BIT;
             }
@@ -760,8 +770,13 @@ static SMPP_PDU *msg_to_pdu(SMPP *smpp, Msg *msg)
     }
 
     if (smpp->autodetect_addr) {
+    	/* check if we have an empty source address */
+    	if (octstr_len(pdu->u.submit_sm.source_addr) == 0) {
+            pdu->u.submit_sm.source_addr_ton = GSM_ADDR_TON_UNKNOWN;
+            pdu->u.submit_sm.source_addr_npi = GSM_ADDR_NPI_UNKNOWN;
+    	}
         /* lets see if its international or alphanumeric sender */
-        if (octstr_get_char(pdu->u.submit_sm.source_addr, 0) == '+') {
+    	else if (octstr_get_char(pdu->u.submit_sm.source_addr, 0) == '+') {
             if (!octstr_check_range(pdu->u.submit_sm.source_addr, 1, 256, gw_isdigit)) {
                 pdu->u.submit_sm.source_addr_ton = GSM_ADDR_TON_ALPHANUMERIC; /* alphanum */
                 pdu->u.submit_sm.source_addr_npi = GSM_ADDR_NPI_UNKNOWN;    /* short code */
@@ -1039,7 +1054,13 @@ static Connection *open_transmitter(SMPP *smpp)
 { 
     SMPP_PDU *bind; 
     Connection *conn; 
- 
+
+#ifdef HAVE_LIBSSL
+    if (smpp->transmit_port_ssl) 
+        conn = conn_open_ssl(smpp->host, smpp->transmit_port, NULL, smpp->conn->our_host);
+        /* XXX add certkeyfile to be given to conn_open_ssl */
+    else
+#endif /* HAVE_LIBSSL */
     conn = conn_open_tcp(smpp->host, smpp->transmit_port, smpp->conn->our_host ); 
     if (conn == NULL) {
         error(0, "SMPP[%s]: Couldn't connect to server.",
@@ -1078,6 +1099,12 @@ static Connection *open_transceiver(SMPP *smpp)
     SMPP_PDU *bind;
     Connection *conn; 
      
+#ifdef HAVE_LIBSSL
+    if (smpp->transmit_port_ssl) 
+        conn = conn_open_ssl(smpp->host, smpp->transmit_port, NULL, smpp->conn->our_host);
+        /* XXX add certkeyfile to be given to conn_open_ssl */
+    else
+#endif /* HAVE_LIBSSL */
     conn = conn_open_tcp(smpp->host, smpp->transmit_port, smpp->conn->our_host ); 
     if (conn == NULL) {  
        error(0, "SMPP[%s]: Couldn't connect to server.",
@@ -1114,6 +1141,12 @@ static Connection *open_receiver(SMPP *smpp)
     SMPP_PDU *bind;
     Connection *conn;
 
+#ifdef HAVE_LIBSSL
+    if (smpp->receive_port_ssl) 
+        conn = conn_open_ssl(smpp->host, smpp->receive_port, NULL, smpp->conn->our_host);
+        /* XXX add certkeyfile to be given to conn_open_ssl */
+    else
+#endif /* HAVE_LIBSSL */
     conn = conn_open_tcp(smpp->host, smpp->receive_port, smpp->conn->our_host );
     if (conn == NULL) {
         error(0, "SMPP[%s]: Couldn't connect to server.",
@@ -1993,16 +2026,20 @@ int smsc_smpp_create(SMSCConn *conn, CfgGroup *grp)
     Octstr *alt_charset;
     Octstr *alt_addr_charset;
     long connection_timeout, wait_ack, wait_ack_action;
+    int port_ssl, receive_port_ssl;
 
     my_number = alt_addr_charset = alt_charset = NULL;
     transceiver_mode = 0;
     autodetect_addr = 1;
+    port_ssl = receive_port_ssl = 0;
  
     host = cfg_get(grp, octstr_imm("host")); 
     if (cfg_get_integer(&port, grp, octstr_imm("port")) == -1) 
         port = 0; 
     if (cfg_get_integer(&receive_port, grp, octstr_imm("receive-port")) == -1) 
         receive_port = 0; 
+    cfg_get_bool(&port_ssl, grp, octstr_imm("port-ssl")); 
+    cfg_get_bool(&receive_port_ssl, grp, octstr_imm("receive-port-ssl")); 
     cfg_get_bool(&transceiver_mode, grp, octstr_imm("transceiver-mode")); 
     username = cfg_get(grp, octstr_imm("smsc-username")); 
     password = cfg_get(grp, octstr_imm("smsc-password")); 
@@ -2125,8 +2162,8 @@ int smsc_smpp_create(SMSCConn *conn, CfgGroup *grp)
     if (wait_ack_action > 0x03 || wait_ack_action < 0)
         panic(0, "SMPP: Invalid wait-ack-expire directive in configuration.");
 
-    smpp = smpp_create(conn, host, port, receive_port, system_type,  
-    	    	       username, password, address_range,
+    smpp = smpp_create(conn, host, port, port_ssl, receive_port, receive_port_ssl,
+                       system_type, username, password, address_range,
                        source_addr_ton, source_addr_npi, dest_addr_ton,  
                        dest_addr_npi, enquire_link_interval, 
                        max_pending_submits, version, priority, validity, my_number, 

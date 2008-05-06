@@ -1,3 +1,8 @@
+2008-05-07  Stipe Tolj  <stolj at kannel.org>
+    * gw/smsc/smsc_smpp.c: add SSL support for SMPP connections.
+    * gwlib/cfg.def: add '[receive-]port-ssl' boolean config directives to
+      indicate we want SSL-enabled SMPP sessions.
+
 2008-04-24  Stipe Tolj  <stolj at kannel.org>
     * gw/bb_store_[file|spool].c: use internal function pointer while
       packing/unpacking the Msg struct.
