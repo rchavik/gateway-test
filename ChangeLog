@@ -1,4 +1,10 @@
-2008-10-07: Alexander Malysh <amalysh at kannel.org>
+2008-10-09 Alexander Malysh <amalysh at kannel.org>
+    * doc/userguide/userguide.xml: applied patch that adds documentation for the
+      meta-data.
+      Thanks to "Alejandro Guerrieri" <aguerrieri at kannel.org> for this patch.
+      [Msg-ID: <cd6a81510809221404q762882fiee3e91c6ea0a1e@mail.gmail.com>]
+
+2008-10-07 Alexander Malysh <amalysh at kannel.org>
     * gw/smsbox.c: commited patch that allow longer account parameter and
       clarify error message.
       Thanks to Vincent CHAVANIS <v.chavanis_at_telemaque.fr> for this patch.

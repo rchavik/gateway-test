@@ -1499,15 +1499,15 @@ admin-password = f00bar
      <row><entry><literal>white-list-regex</literal></entry>
         <entry>POSIX regular expression</entry>
         <entry valign="bottom">
-        A regular expression defining the set of accepted senders. See section on regular 
-        expressions for details.
+        A regular expression defining the set of accepted senders.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
      <row><entry><literal>black-list-regex</literal></entry>
         <entry>POSIX regular expression</entry>
         <entry valign="bottom">
-        A regular expression defining the set of rejected senders. See section on regular 
-        expressions for details.
+        A regular expression defining the set of rejected senders.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -2598,8 +2598,7 @@ secret-nas = radius
         <entry valign="bottom">
         SMS messages with SMSC ID equal to any of the IDs in this set of SMSC IDs
         are always routed to this SMSC. 
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -2608,8 +2607,7 @@ secret-nas = radius
         <entry valign="bottom">
         SMS messages with SMSC ID equal to any of the IDs in this set of SMSC IDs
         are never routed to this SMSC. 
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -2618,8 +2616,7 @@ secret-nas = radius
         <entry valign="bottom">
         SMS messages with SMSC ID in this set of SMSC IDs are sent to this SMSC
         as preferred.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -2628,8 +2625,7 @@ secret-nas = radius
         <entry valign="bottom">
         A set of phone number prefixes which are accepted to be
         sent through this SMSC. 
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -2638,8 +2634,7 @@ secret-nas = radius
         <entry valign="bottom">
         A set of phone number prefixes which may not be
         sent through this SMSC. 
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -2649,8 +2644,7 @@ secret-nas = radius
         As <literal>denied-prefix-regex</literal>, but SMS messages with receiver matching 
         any of these prefixes are preferably sent through this
         SMSC. In a case of multiple preferences, one is selected at random.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -2663,6 +2657,12 @@ secret-nas = radius
         </entry>   
      </row>
 
+     <row><entry><literal>meta-data</literal></entry>
+        <entry>string</entry>
+        <entry valign="bottom">url-encoded string with properly formatted meta-data pair(s)..
+        See <xref linkend="meta-data"> for an explanation about meta-data configuration and encoding.
+        </entry>   
+     </row>
   </tbody>
   </tgroup>
  </table>
@@ -5436,8 +5436,7 @@ ssl-certkey-file
         Defines the set of accepted destinations of SMS messages. If a 
 	destination of an SMS message is not in this set, any message 
 	received from the HTTP interface is rejected. 
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
      <row><entry><literal>black-list-regex</literal></entry>
@@ -5445,8 +5444,7 @@ ssl-certkey-file
         <entry valign="bottom">
         As white-list-regex, but SMS messages to numbers within in this set are
         automatically discarded.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
      <row><entry><literal>max-pending-requests</literal></entry>   
@@ -5674,7 +5672,7 @@ get-url = "http://%S"
      This field may be used to enable service-selection based on a regular expression.
      If this field is defined for a service, then the selection will rely on the regex only, never taking
      the literal <literal>keyword</literal> into account.
-     See section on regular expressions for details.
+     See section on <xref linkend="regular-expressions"> for details.
    </entry></row>
 
    <row><entry><literal>aliases</literal></entry>
@@ -5963,8 +5961,7 @@ get-url = "http://%S"
         <footnote><para>Even if this service is denied,
 	Kannel still searches for other service which accepts the message,
 	or default service.</para></footnote>
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -5975,8 +5972,7 @@ get-url = "http://%S"
         <footnote><para>Even if this service is denied,
 	Kannel still searches for other service which accepts the message,
 	or default service.</para></footnote>
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -5988,8 +5984,7 @@ get-url = "http://%S"
 	Kannel still searches for another service which accepts the message.
 	This way there could be several services with the same keyword and
 	different results.</para></footnote>
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -5998,8 +5993,7 @@ get-url = "http://%S"
         <entry valign="bottom">
         A set of phone number prefixes of sender-numbers which may
         not use this service.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -6010,8 +6004,7 @@ get-url = "http://%S"
         may receive data sent by this service. This can be used to
         allow only inbound SMS to certain shortcut numbers to be allowed
 	to this service.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -6020,8 +6013,7 @@ get-url = "http://%S"
         <entry valign="bottom">
         A set of phone number prefixes of receiver-numbers which may not
         receive data sent by this service.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -6030,8 +6022,7 @@ get-url = "http://%S"
         <entry valign="bottom">
         Defines a set of accepted senders of SMS messages. If a 
 	sender of an SMS message is not in this list, the message is rejected.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -6040,8 +6031,7 @@ get-url = "http://%S"
         <entry valign="bottom">
         As white-list-regex, but SMS messages from these numbers are
         automatically discarded.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -6136,6 +6126,10 @@ the Meta-Data value
 
 <row><entry><literal>%A</literal></entry><entry>
 the delivery report SMSC reply, if any
+</entry></row>
+
+<row><entry><literal>%D</literal></entry><entry>
+meta-data from the SMSC. See <xref linkend="meta-data"> for more into.
 </entry></row>
 
 <row><entry><literal>%n</literal></entry><entry>
@@ -6370,6 +6364,9 @@ text = "No action specified"
    <row><entry><literal>priority</literal></entry>
    <entry><literal>X-Kannel-Priority</literal></entry></row>
 
+   <row><entry><literal>meta-data</literal></entry>
+   <entry><literal>X-Kannel-Meta-Data</literal></entry></row>
+
   </tbody>
   </tgroup>
  </table>
@@ -6450,6 +6447,10 @@ text = "No action specified"
    <entry><literal>X-Kannel-Service</literal></entry>
    <entry></entry></row>
 
+   <row><entry><literal>%D (meta-data)</literal></entry>
+   <entry><literal>X-Kannel-Meta-Data</literal></entry>
+   <entry>Meta-Data (Only SMPP TLV's supported at the moment)</entry></row>
+
    <row><entry><literal>%a or %r (text)</literal></entry>
    <entry>request body</entry>
    <entry>Kannel send all words (%a) unless <literal>strip-keyword</literal> is true</entry></row>
@@ -6479,6 +6480,7 @@ text = "No action specified"
     &#60;oa&#62;&#60;number&#62;originating number (from)&#60;/number&#62;&#60;/oa&#62;
     &#60;ud&#62;user data (text)&#60;/ud&#62;
     &#60;udh&#62;user data header (udh)&#60;/udh&#62;
+    &#60;meta-data&#62;meta-data&#60;/meta-data&#62;
     &#60;dcs&#62;
       &#60;mclass&#62;mclass&#60;/mclass&#62;
       &#60;coding&#62;coding&#60;/coding&#62;
@@ -6706,7 +6708,7 @@ text = "No action specified"
         <entry valign="bottom">
         A set of phone numbers which are accepted to be
         sent using this username. 
-        See section on regular expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>
      </row>
 
@@ -6715,7 +6717,7 @@ text = "No action specified"
         <entry valign="bottom">
         A set of phone numbers which may not
         send using this username. 
-        See section on regular expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>
      </row>
 
@@ -6725,7 +6727,7 @@ text = "No action specified"
         Defines a set of accepted destinations of SMS messages. If a 
 	destination of an SMS message is not in this list, any message 
 	received from the HTTP interface is rejected. 
-        See section on regular expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>
      </row>
 
@@ -6734,7 +6736,7 @@ text = "No action specified"
         <entry valign="bottom">
         As <literal>white-list-regex</literal>, but SMS messages originating from 
         a number matching the pattern are discarded.
-        See section on regular expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>
      </row>
 
@@ -7912,8 +7914,7 @@ allow-ip = 62.254.217.163
         <entry valign="bottom">
              Defines the set of phone-numbers accepting pushes from this 
              pi.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -7922,8 +7923,7 @@ allow-ip = 62.254.217.163
         <entry valign="bottom">
              Defines the set of phone-numbers rejecting pushes from this 
              pi.
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -7931,16 +7931,14 @@ allow-ip = 62.254.217.163
         <entry>POSIX regular expression</entry>
         <entry valign="bottom">
              Set of phone number prefixes allowed in pushes coming from this pi. 
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
      <row><entry><literal>denied-list-regex</literal></entry>
         <entry>POSIX regular expression</entry>
         <entry valign="bottom">
              Set of phone number prefixes denied in pushes coming from this pi. 
-        See section on regular 
-        expressions for details.
+        See section on <xref linkend="regular-expressions"> for details.
         </entry>   
      </row>
 
@@ -9128,11 +9126,11 @@ test/fakesmsc -m 1 "100 500 udh %0eudh+stuff+here main+message"
 
 </appendix>
 
-<appendix>
+<appendix id="regular-expressions" xreflabel="Regular Expressions">
     <title>Regular Expressions</title>
     <para>Note: this is not intended to be an introduction to regular expressions (short: regex) but a 
     description of their application within Kannel. For general information regarding regexes
-    please refer to <xref linkend="Biblio-regexp"/>.
+    please refer to <xref linkend="Biblio-regexp">.
     </para>
     <sect1>
         <title>Syntax and semantics of the regex configuration parameter</title>
@@ -9331,6 +9329,101 @@ test/fakesmsc -m 1 "100 500 udh %0eudh+stuff+here main+message"
         </sect2>
     </sect1>
 </appendix> 
+
+<appendix id="meta-data" xreflabel="Meta Data">
+    <title>Meta Data</title>
+    <para>This appendix describes the elements and syntax required to access meta-data coming from and going to SMSC connections.</para>
+    <sect1>
+      <title>Overview</title>
+      <para>Many SMSC services have means to exchange data that doesn't conform to the established format</para>
+      <para>For example, the SMPP protocol defines the TLV (Tag, Length, Value) mechanism to allow adding arbitrary parameters
+      to it's PDU's, thus extending it's functionality.</para>
+      <para>To achieve this, a special group and parameters were added to abstract the meta-data into something that could be used disregarding
+      the SMSC type.</para>
+      <para>Currently only the SMPP module is implemented, but the format chosen allows for other modules to be added in the future.</para>
+    </sect1>
+    <sect1>
+      <title>SMPP Implementation</title>
+      <para>A special group type <literal>smpp-tlv</literal> is needed for each TLV. Each group defines the address, data type and length of the TLV</para>
+      <para>Example configuration:</para>
+<programlisting>
+group = smpp-tlv
+name = my_tlv_name
+tag = 0x1601
+type = octetstring
+length = 20
+</programlisting>
+
+<informaltable frame="none">
+  <tgroup cols="3">
+    <thead><row>
+     <entry>Variable</entry>
+     <entry>Data Type</entry>
+     <entry>Description</entry>
+   </row></thead><tbody>
+
+   <row><entry><literal>tag</literal></entry>
+     <entry><literal>hex</literal></entry>
+     <entry valign="bottom">
+        32-Bit HEX address for the given TLV. Must match SMPP specifications for the TLV (or be agreed with the SMSC operator).
+     </entry></row>
+
+   <row><entry><literal>type</literal></entry>
+     <entry><literal>string</literal></entry>
+     <entry valign="bottom">
+        Accepted data type. Accepted values are <literal>integer</literal>, <literal>nulterminated</literal> and <literal>octetstring</literal>.
+        Must match SMPP specifications for the TLV (or be agreed with the SMSC operator).
+     </entry></row>
+
+   <row><entry><literal>length</literal></entry>
+     <entry><literal>integer</literal></entry>
+     <entry valign="bottom">
+        Maximum data length expected in bytes. Must match SMPP specifications for the TLV (or be agreed with the SMSC operator).
+     </entry></row>
+
+
+		</tbody>
+	</tgroup>
+</informaltable>
+      <sect2>
+        <title>MO Messages</title>
+        <para>Meta Data coming from MO messages comes urlencoded into the <literal>%D</literal> parameter. Only TLV parameters defined on the configuration file are honored.</para>
+        <sect3>
+	        <title>Example</title>
+	        <para><literal>http://localhost/myscript?...&amp;meta-data=%D&amp;...</literal></para>
+        </sect3>
+      </sect2>
+      <sect2>
+        <title>MT Messages</title>
+        <para>To send into an MT messages the <literal>meta-data</literal> parameter should be used.</para>
+        
+        <para>The format used to pass the data has 2 parts: The <literal>?smsc-type?</literal> (surrounded by question marks),
+        which specify the kind of smsc receiving the data (at the moment only <literal>smpp</literal> is implemented) and then a set of key/value
+        pairs with the data to be transmitted. Extra smsc-types can be added surrounded by question marks and followed by the key/value pairs.</para>
+        
+        <para>In other words,  the data should be coded using the following format, where URLENCODE() implies that the data between parentheses should
+        be urlencoded:</para>
+
+        <para><literal>?URLENCODE(&lt;smsc-type1&gt;)?URLENCODE(key1)=URLENCODE(value1)&amp;URLENCODE(key2)=URLENCODE(value2)&amp;...</literal></para>
+        <para><literal>?URLENCODE(&lt;smsc-type2&gt;)?URLENCODE(key1)=URLENCODE(value1)&amp;...</literal></para>
+
+        <para>Only the parameters defined on the configuration file are honored.</para>
+
+        <para>Important: For the sendsms interface, you must URLENCODE the resulting string again to pass it as a single parameter on the URL.</para>
+
+	      <sect3>
+	        <title>Examples</title>
+	        <para>If we want to send the parameter "my-data" with value "Hello World" to an SMSC over SMPP, we'd use:</para>
+	        <para>sendsms get-url:</para>
+	        <para><literal>http://localhost:13013/cgi-bin/sendsms?...&amp;meta-data=%3Fsmpp%3Fmy-data%3DHello%2BWorld</literal></para>
+          <para>sendsms post:</para>
+          <para>Send <literal>?smpp?my-data=Hello+World</literal> on the <literal>X-Kannel-Meta-Data</literal> header</para>
+          <para>XML:</para>
+          <para><literal>&lt;meta-data&gt;?smpp?my-data=Hello+World&lt;/meta-data&gt;</literal></para>
+	      </sect3>
+      </sect2>
+    </sect1>
+</appendix>
 
 <appendix>
 <title>Log files</title>
