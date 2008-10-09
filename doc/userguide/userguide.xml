@@ -2424,7 +2424,7 @@ secret-nas = radius
      </entry></row>
 
     <row><entry><literal>throughput</literal></entry>
-      <entry><literal>number (messages/sec)</literal></entry>
+      <entry><literal>float (messages/sec)</literal></entry>
       <entry valign="bottom">
         If SMSC requires that Kannel limits the number of messages per second, 
         use this variable. This is considered as active throttling. (optional)
@@ -2509,21 +2509,30 @@ secret-nas = radius
         As some SMS Centers do not follow the standards in character
         coding, an <literal>alt-charset</literal> character conversion is
         presented. This directive acts different for specific SMSC types.
-		  Please see your SMSC module type you want to use for more details.
+		Please see your SMSC module type you want to use for more details.
+     </entry></row>
+
+   <row><entry><literal>alt-dcs</literal></entry>
+     <entry><literal>boolean</literal></entry>
+     <entry valign="bottom">
+	   Optional data coding scheme value usage. Sets the 'alt-dcs' value 
+	   for the sendsms HTTP interface to a fixed value for each SMS sent 
+	   via this SMSC connection. 
+	   If equals to yes, uses FX. If equals to no (default), uses 0X.
      </entry></row>
 
    <row><entry><literal>our-host</literal></entry>
      <entry><literal>hostname</literal></entry>
      <entry valign="bottom">
        Optional hostname or IP address in which to bind the connection in our
-     end. TCP/IP connection only.
+       end. TCP/IP connection only.
      </entry></row>
 
     <row><entry><literal>log-file</literal></entry>
      <entry>filename</entry>
      <entry valign="bottom">
         A file in which to write a log of the given smsc output. Hence
- 		  this allows to log smsc specific entries to a separate file.
+        this allows to log smsc specific entries to a separate file.
      </entry></row>
 
     <row><entry><literal>log-level</literal></entry>
@@ -2642,6 +2651,15 @@ secret-nas = radius
         SMSC. In a case of multiple preferences, one is selected at random.
         See section on regular 
         expressions for details.
+        </entry>   
+     </row>
+
+     <row><entry><literal>max-sms-octets</literal></entry>
+        <entry>number</entry>
+        <entry valign="bottom">
+        Maximum allowed octets for this SMSC. If this maximum exceeds Kannel will split
+        SMS into multiparts.
+        Default: 140
         </entry>   
      </row>
 
@@ -3608,7 +3626,8 @@ pin = 2345
      <entry><literal>device-name</literal></entry>
      <entry valign="bottom">
           The device the modem is connected to, like <literal>/dev/ttyS0</literal>.
-          When the device name is set to <literal>rawtcp</literal>, two other
+          When the device name is set to <literal>rawtcp</literal> or 
+          <literal>telnet</literal> two other
           variables are required in the configuration: <literal>host</literal>
           and <literal>port</literal>. See the note below.
       </entry></row>
@@ -3692,6 +3711,38 @@ pin = 2345
        <entry valign="bottom">
           TCP port to connect to on <literal>rawtcp-host</literal>.
           Required if <literal>device</literal> is set to <literal>rawtcp</literal>.
+       </entry></row>
+
+     <row><entry><literal>smsc-username</literal></entry>
+       <entry><literal>string</literal></entry>
+       <entry valign="bottom">
+          Username to use on a Login: or User: prompt prior to be connected
+          to the modem. Useful if modem is connected to a terminal server
+          and <literal>rawtcp</literal> mode or <literal>telnet</literal> mode
+          are used.
+       </entry></row>
+
+     <row><entry><literal>smsc-password</literal></entry>
+       <entry><literal>string</literal></entry>
+       <entry valign="bottom">
+          Username to use on a Password prompt prior to be connected
+          to the modem. Useful if modem is connected to a terminal server
+          and <literal>rawtcp</literal> mode or <literal>telnet</literal> mode
+          are used. <literal>smsc-password</literal> can be used alone
+          without <literal>smsc-username</literal> for devices only asking for
+          a password.
+       </entry></row>
+
+    <row><entry><literal>login-prompt</literal></entry>
+       <entry><literal>string</literal></entry>
+       <entry valign="bottom">
+          An alternative string to be used instead of Login: or Username:
+       </entry></row>
+
+     <row><entry><literal>password-prompt</literal></entry>
+       <entry><literal>string</literal></entry>
+       <entry valign="bottom">
+           An alternative string to be used instead of Password:
        </entry></row>
 
    </tbody></tgroup></informaltable>
@@ -3970,6 +4021,12 @@ send-url = "http://localhost:20022"
        Port number in which Kannel listens to (MO) messages from other
        gateway
      </entry></row>
+
+   <row><entry><literal>use-ssl</literal></entry>
+   <entry><literal>boolean</literal></entry>
+   <entry valign="bottom">
+      Defines whether listen port should use SSL.
+   </entry></row>
 
    <row><entry><literal>connect-allow-ip</literal></entry>
      <entry><literal>IP-list</literal></entry>
@@ -6115,8 +6172,9 @@ recoded from Unicode, it will be "WINDOWS-1252"
 billing identifier/information of incoming message. The value
 depends on the SMSC module and the associated billing semantics
 of the specific SMSC providing the information. For EMI2 the value
-is the XSer 0c field, for SMPP it is the service_type of the 
-deliver_sm PDU. (Note: This is used for proxying billing 
+is the XSer 0c field, for SMPP MO it is the service_type of the 
+deliver_sm PDU, and for SMPP DLR it is the DLR message err component. 
+(Note: This is used for proxying billing 
 information to external applications. There is no semantics 
 associated while processing these.)
 </entry></row>
@@ -6126,6 +6184,10 @@ account identifier/information of incoming message. The value
 depends on the SMSC module and has been introduced to allow the
 forwarding of an operator ID from aggregator SMSCs to the application
 layer, hence the smsbox HTTP calling instance.
+</entry></row>
+
+<row><entry><literal>%O</literal></entry><entry>
+DCS (Data coding schema) value.
 </entry></row>
 
 <row><entry><literal>%f</literal></entry><entry>

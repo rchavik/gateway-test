@@ -313,6 +313,7 @@ MULTI_GROUP(smsc,
     OCTSTR(host)
     OCTSTR(alt-host)
     OCTSTR(port)
+    OCTSTR(use-ssl)
     OCTSTR(alt-port)
     OCTSTR(smsc-username)
     OCTSTR(smsc-password)
@@ -381,6 +382,9 @@ MULTI_GROUP(smsc,
     OCTSTR(status-success-regex)
     OCTSTR(status-permfail-regex)
     OCTSTR(status-tempfail-regex)
+    OCTSTR(max-sms-octets)
+    OCTSTR(login-prompt)
+    OCTSTR(password-prompt)
 )
 
 

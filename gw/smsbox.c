@@ -88,6 +88,8 @@
 
 #define O_DESTROY(a) { if(a) octstr_destroy(a); a = NULL; }
 
+#define ACCOUNT_MAX_LEN 64
+
 /* Defaults for the HTTP request queueing inside http_queue_thread */
 #define HTTP_MAX_RETRIES    0
 #define HTTP_RETRY_DELAY    10 /* in sec. */
@@ -1754,8 +1756,7 @@ static void obey_request_thread(void *arg)
 		octstr_get_cstr(msg->sms.sender));
 
 	} else {
-	    trans = urltrans_find(translations, msg->sms.msgdata,
-	    	    	      msg->sms.smsc_id, msg->sms.sender, msg->sms.receiver, msg->sms.account);
+	    trans = urltrans_find(translations, msg);
 	    if (trans == NULL) {
 		warning(0, "No translation found for <%s> from <%s> to <%s>",
 		    octstr_get_cstr(msg->sms.msgdata),
@@ -2169,11 +2170,11 @@ static Octstr *smsbox_req_handle(URLTranslation *t, Octstr *client_ip,
     msg->sms.sms_type = mt_push;
     msg->sms.sender = octstr_duplicate(newfrom);
     if(octstr_len(account)) {
-	if(octstr_len(account) <= 32 && 
+	if(octstr_len(account) <= ACCOUNT_MAX_LEN && 
 	   octstr_search_chars(account, octstr_imm("[]\n\r"), 0) == -1) {
 	    msg->sms.account = account ? octstr_duplicate(account) : NULL;
 	} else {
-	    returnerror = octstr_create("Account field misformed, rejected");
+	    returnerror = octstr_create("Account field misformed or too long, rejected");
 	    goto field_error;
 	}
     }

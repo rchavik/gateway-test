@@ -54,87 +54,59 @@
  * WapIT Ltd., Helsinki, Finland for the Kannel project.  
  */ 
 
-/*
- * dbpool_sqlite3.c - implement SQLite3 operations for generic database connection pool
+/**
+ * load.h
  *
- * Stipe Tolj <st@tolj.org>
+ * Alexander Malysh <amalysh at kannel.org> 2008 for project Kannel
  */
 
-#ifdef HAVE_SQLITE3
-#include <sqlite3.h>
+#ifndef LOAD_H
+#define LOAD_H 1
 
-static void *sqlite3_open_conn(const DBConf *db_conf)
-{
-    sqlite3 *db = NULL;
-    SQLite3Conf *conf = db_conf->sqlite3; /* make compiler happy */
+#include <time.h>
+ 
+/**
+ * Anonymos Load typedef.
+ */
+typedef struct load Load;
 
-    /* sanity check */
-    if (conf == NULL)
-        return NULL;
+/**
+ * Create new Load object.
+ * @heuristic - 0 disable heuristic (means get always current load); 1 enable
+ */
+Load* load_create_real(int heuristic);
+#define load_create() load_create_real(1)
 
-    if (sqlite3_open(octstr_get_cstr(conf->file), &db) != SQLITE_OK) {
-        error(0, "SQLite3: can not open or create database file `%s'!", 
-              octstr_get_cstr(conf->file));
-        error(0, "SQLite3: %s", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        goto failed;
-    }
+/**
+ * Add load measure interval.
+ * @load - load object
+ * @interval - measure interval in seconds
+ * @return -1 if error occurs (e.g. interval already exists); 0 if all was fine
+ */
+int load_add_interval(Load *load, int interval);
 
-    info(0, "SQLite3: Opened or created database file `%s'.", octstr_get_cstr(conf->file));
-    info(0, "SQLite3: library version %s.", sqlite3_version);
+/**
+ * Increase load values with @value.
+ * @load - load object
+ * @valu - how much to increase
+ */
+void load_increase_with(Load *load, unsigned long value);
+#define load_increase(load) load_increase_with(load, 1)
 
-    return db;
+/**
+ * Destroy load object.
+ * @load - load object
+ */
+void load_destroy(Load *load);
 
-failed:
-    return NULL;
-}
+/**
+ * Get measured load value at position @pos.
+ */
+float load_get(Load *load, int pos);
 
+/**
+ * Get length of intervals.
+ */
+int load_len(Load *load);
 
-static void sqlite3_close_conn(void *conn)
-{
-    int rc;
-    if (conn == NULL)
-        return;
-
-    /* in case we are busy, loop until we can close */
-    do {
-        rc = sqlite3_close((sqlite3*) conn);
-    } while (rc == SQLITE_BUSY);
-    
-    if (rc == SQLITE_ERROR) {
-        error(0, "SQLite3: error while closing database file.");
-    }
-}
-
-
-static int sqlite3_check_conn(void *conn)
-{
-    if (conn == NULL)
-        return -1;
-
-    /* There is no such construct in SQLite3,
-     * so return a valid connection indication */
-    return 0;
-}
-
-
-static void sqlite3_conf_destroy(DBConf *db_conf)
-{
-    SQLite3Conf *conf = db_conf->sqlite3;
-
-    octstr_destroy(conf->file);
-
-    gw_free(conf);
-    gw_free(db_conf);
-}
-
-
-static struct db_ops sqlite3_ops = {
-    .open = sqlite3_open_conn,
-    .close = sqlite3_close_conn,
-    .check = sqlite3_check_conn,
-    .conf_destroy = sqlite3_conf_destroy
-};
-
-#endif /* HAVE_SQLITE3 */
-
+#endif

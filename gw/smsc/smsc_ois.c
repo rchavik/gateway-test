@@ -548,7 +548,7 @@ static int ois_open_receiver(SMSCenter *smsc)
 
     addrlen = sizeof(addr);
     smsc->socket = accept(smsc->ois_listening_socket,
-			  (struct sockaddr *)&addr, &addrlen);
+			  (struct sockaddr *)&addr, (socklen_t *)&addrlen);
     if (smsc->socket == -1) {
 	if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
 	    /* || errno == ECONNABORTED || errno == EPROTO) -Kalle 6.7 */
@@ -1074,7 +1074,8 @@ static int ois_deliver_sm_invoke(SMSCenter *smsc, const char *buffer)
 {
     Msg *msg;
     int ret;
-
+	ois_listentry **mo;
+	
     SAY(2, "ois_deliver_sm_invoke");
 
     msg = msg_create(sms);
@@ -1084,7 +1085,8 @@ static int ois_deliver_sm_invoke(SMSCenter *smsc, const char *buffer)
 	goto error;
     }
 
-    ois_append_to_list((ois_listentry **) &smsc->ois_received_mo, msg);
+	mo = (ois_listentry **)&smsc->ois_received_mo;
+    ois_append_to_list(mo, msg);
 
     return 0;
     

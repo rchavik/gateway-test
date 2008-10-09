@@ -133,7 +133,7 @@
 typedef struct {
     long transmitter;
     long receiver;
-    List *msgs_to_send;
+    gw_prioqueue_t *msgs_to_send;
     Dict *sent_msgs; 
     List *received_msgs; 
     Counter *message_id_counter; 
@@ -225,9 +225,9 @@ static SMPP *smpp_create(SMSCConn *conn, Octstr *host, int transmit_port,
     smpp = gw_malloc(sizeof(*smpp)); 
     smpp->transmitter = -1; 
     smpp->receiver = -1; 
-    smpp->msgs_to_send = gwlist_create(); 
+    smpp->msgs_to_send = gw_prioqueue_create(sms_priority_compare); 
     smpp->sent_msgs = dict_create(max_pending_submits, NULL); 
-    gwlist_add_producer(smpp->msgs_to_send); 
+    gw_prioqueue_add_producer(smpp->msgs_to_send); 
     smpp->received_msgs = gwlist_create(); 
     smpp->message_id_counter = counter_create(); 
     counter_increase(smpp->message_id_counter);
@@ -269,7 +269,7 @@ static SMPP *smpp_create(SMSCConn *conn, Octstr *host, int transmit_port,
 static void smpp_destroy(SMPP *smpp) 
 { 
     if (smpp != NULL) { 
-        gwlist_destroy(smpp->msgs_to_send, msg_destroy_item); 
+        gw_prioqueue_destroy(smpp->msgs_to_send, msg_destroy_item); 
         dict_destroy(smpp->sent_msgs); 
         gwlist_destroy(smpp->received_msgs, msg_destroy_item); 
         counter_destroy(smpp->message_id_counter); 
@@ -768,7 +768,7 @@ static SMPP_PDU *msg_to_pdu(SMPP *smpp, Msg *msg)
         pdu->u.submit_sm.source_addr_npi = GSM_ADDR_NPI_E164; /* ISDN number plan */
     }
 
-    if (smpp->autodetect_addr) {
+    if (pdu->u.submit_sm.source_addr && smpp->autodetect_addr) {
         /* lets see if its international or alphanumeric sender */
         if (octstr_get_char(pdu->u.submit_sm.source_addr, 0) == '+') {
             if (!octstr_check_range(pdu->u.submit_sm.source_addr, 1, 256, gw_isdigit)) {
@@ -1009,7 +1009,7 @@ static void send_messages(SMPP *smpp, Connection *conn, long *pending_submits)
 
     while (*pending_submits < smpp->max_pending_submits) {
     	/* Get next message, quit if none to be sent */
-    	msg = gwlist_extract_first(smpp->msgs_to_send);
+    	msg = gw_prioqueue_remove(smpp->msgs_to_send);
         if (msg == NULL)
             break;
 
@@ -1157,7 +1157,7 @@ static Connection *open_receiver(SMPP *smpp)
 static Msg *handle_dlr(SMPP *smpp, Octstr *destination_addr, Octstr *short_message, Octstr *message_payload, Octstr *receipted_message_id, long message_state)
 {
     Msg *dlrmsg = NULL;
-    Octstr *respstr = NULL, *msgid = NULL, *tmp;
+    Octstr *respstr = NULL, *msgid = NULL, *err = NULL, *tmp;
     int dlrstat = -1;
     
     /* first check for SMPP v3.4 and above */
@@ -1197,18 +1197,23 @@ static Msg *handle_dlr(SMPP *smpp, Octstr *destination_addr, Octstr *short_messa
         long curr = 0, vpos = 0;
         Octstr *stat = NULL;
         char id_cstr[65], stat_cstr[16], sub_d_cstr[13], done_d_cstr[13];
+        char err_cstr[4];
         int sub, dlrvrd, ret;
     
         /* get server message id */
         /* first try sscanf way if thus failed then old way */
         ret = sscanf(octstr_get_cstr(respstr),
-                    "id:%64[^s] sub:%d dlvrd:%d submit date:%12[0-9] done date:%12[0-9] stat:%10[^t^e]",
-                    id_cstr, &sub, &dlrvrd, sub_d_cstr, done_d_cstr, stat_cstr);
-        if (ret == 6) {
+                     "id:%64[^s] sub:%d dlvrd:%d submit date:%12[0-9] done "
+                     "date:%12[0-9] stat:%10[^t^e] err:%3[0-9]",
+                     id_cstr, &sub, &dlrvrd, sub_d_cstr, done_d_cstr, 
+                     stat_cstr, err_cstr);
+        if (ret == 7) {
             msgid = octstr_create(id_cstr);
             octstr_strip_blanks(msgid);
             stat = octstr_create(stat_cstr);
             octstr_strip_blanks(stat);
+            err = octstr_create(err_cstr);
+            octstr_strip_blanks(err);
         }
         else {
             debug("bb.sms.smpp", 0, "SMPP[%s]: Couldnot parse DLR string sscanf way,"
@@ -1229,6 +1234,13 @@ static Msg *handle_dlr(SMPP *smpp, Octstr *destination_addr, Octstr *short_messa
                     stat = octstr_copy(respstr, curr+5, vpos-curr-5);
             } else {
                 stat = NULL;
+            }
+            if ((curr = octstr_search(respstr, octstr_imm("err:"), 0)) != -1) {
+                vpos = octstr_search_char(respstr, ' ', curr);
+                if ((vpos-curr >0) && (vpos != -1))
+                    err = octstr_copy(respstr, curr+4, vpos-curr-4);
+            } else {
+                err = NULL;
             }
         }
         
@@ -1251,8 +1263,7 @@ static Msg *handle_dlr(SMPP *smpp, Octstr *destination_addr, Octstr *short_messa
         else
             dlrstat = DLR_FAIL;
                 
-        if (stat != NULL)
-            octstr_destroy(stat);
+        octstr_destroy(stat);
     }
 
     if (msgid != NULL) {
@@ -1299,9 +1310,11 @@ static Msg *handle_dlr(SMPP *smpp, Octstr *destination_addr, Octstr *short_messa
          * we found the delivery report in our storage, so recode the
          * message structure.
          * The DLR trigger URL is indicated by msg->sms.dlr_url.
+         * Add the DLR error code as billing identifier.
          */
         dlrmsg->sms.msgdata = octstr_duplicate(respstr);
         dlrmsg->sms.sms_type = report_mo;
+        dlrmsg->sms.binfo = octstr_duplicate(err);
     } else {
         error(0,"SMPP[%s]: got DLR but could not find message or was not interested "
                 "in it id<%s> dst<%s>, type<%d>",
@@ -1309,6 +1322,7 @@ static Msg *handle_dlr(SMPP *smpp, Octstr *destination_addr, Octstr *short_messa
                 octstr_get_cstr(destination_addr), dlrstat);
     }
     octstr_destroy(tmp);
+    octstr_destroy(err);
                 
     return dlrmsg;
 }
@@ -1886,7 +1900,7 @@ static void io_thread(void *arg)
 
             long reason = (smpp->quitting?SMSCCONN_FAILED_SHUTDOWN:SMSCCONN_FAILED_TEMPORARILY);
 
-            while((msg = gwlist_extract_first(smpp->msgs_to_send)) != NULL)
+            while((msg = gw_prioqueue_remove(smpp->msgs_to_send)) != NULL)
                 bb_smscconn_send_failed(smpp->conn, msg, reason, NULL);
 
             noresp = dict_keys(smpp->sent_msgs);
@@ -1926,7 +1940,7 @@ static long queued_cb(SMSCConn *conn)
 
     smpp = conn->data;
     conn->load = (smpp ? (conn->status != SMSCCONN_DEAD ?
-                  gwlist_len(smpp->msgs_to_send) : 0) : 0);
+                  gw_prioqueue_len(smpp->msgs_to_send) : 0) : 0);
     return conn->load;
 }
 
@@ -1936,7 +1950,7 @@ static int send_msg_cb(SMSCConn *conn, Msg *msg)
     SMPP *smpp;
 
     smpp = conn->data;
-    gwlist_produce(smpp->msgs_to_send, msg_duplicate(msg));
+    gw_prioqueue_produce(smpp->msgs_to_send, msg_duplicate(msg));
     gwthread_wakeup(smpp->transmitter);
     return 0;
 }
