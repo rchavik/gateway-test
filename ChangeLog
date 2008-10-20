@@ -1,3 +1,7 @@
+2008-10-20  Stipe Tolj  <stolj at kannel.org>
+    * test/test_store_dump.c: apply CVS HEAD sync here too, seems like Alex 
+      missed this one, causing 'make all' to break.
+ 
 2008-10-09 Alexander Malysh <amalysh at kannel.org>
     * doc/userguide/userguide.xml: applied patch that adds documentation for the
       meta-data.
