@@ -1,3 +1,8 @@
+2008-10-21  Stipe Tolj  <stolj at kannel.org>
+    * gw/smsc/smsc_smpp.c: fix possible segfaults in handle_pdu(), where we 
+      don't access the resp PDU structure correctly in the case of shutdown
+      phase.
+
 2008-10-20  Stipe Tolj  <stolj at kannel.org>
     * test/test_store_dump.c: apply CVS HEAD sync here too, seems like Alex 
       missed this one, causing 'make all' to break.
