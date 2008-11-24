@@ -1,3 +1,27 @@
+2008-11-19 Alexander Malysh <amalysh at kannel.org>
+    * gwlib/log.c: fixed double close/free in log_close_all().
+      Thanks to Werner Coetzee <werner.coetzee at clickatell.com> for pointing
+      to the issue.
+
+2008-11-19 Alexander Malysh <amalysh at kannel.org>
+    * debian/kannel.init: apllied patch that replace usage of run_kannel_box
+      with kannel oprions --daemonize.
+      Thanks to Alan McNatty <alan at catalyst.net.nz> for this patch.
+      [Msg-ID: <4922140B.3000803@catalyst.net.nz>]
+
+2008-11-17 Alexander Malysh <amalysh at kannel.org>
+    * gw/smsc/smsc_at.c: wait OK after issuing AT+CNMA-command.
+      Thanks to matti.armanen at sci.fi for the patch.
+      [Msg-ID: 491E905E.908@sci.fi]
+
+2008-10-22  Stipe Tolj  <stolj at kannel.org>
+    * test/test_ota.c: write the binary ota_compile() output block to a file
+      cleanly.
+       
+2008-10-22  Stipe Tolj  <stolj at kannel.org>
+    * gw/ota_compiler.c: re-order INLINE attributs in oma_ota_attributes struct
+      to fit the order in the spec tables. NLC.
+
 2008-10-21  Stipe Tolj  <stolj at kannel.org>
     * gw/smsc/smsc_smpp.c: fix possible segfaults in handle_pdu(), where we 
       don't access the resp PDU structure correctly in the case of shutdown
@@ -7,11 +31,22 @@
     * test/test_store_dump.c: apply CVS HEAD sync here too, seems like Alex 
       missed this one, causing 'make all' to break.
  
+2008-10-10  Stipe Tolj  <stolj at kannel.org>
+    * doc/userguide/userguide.xml: add HTTP admin 'reload-lists' section.
+    * gw/bb_[http|smssconn].c, gw/bearerbox.h: implement HTTP admin command 
+      'reload-lists' to allow re-loading of the '[white|black]-list' on the fly 
+      while runtime. This helps a lot while the remote lists change over time 
+      and we want to keep bearerbox running and don't have to restart in order 
+      to re-load the lists.
+      
 2008-10-09 Alexander Malysh <amalysh at kannel.org>
     * doc/userguide/userguide.xml: applied patch that adds documentation for the
       meta-data.
       Thanks to "Alejandro Guerrieri" <aguerrieri at kannel.org> for this patch.
       [Msg-ID: <cd6a81510809221404q762882fiee3e91c6ea0a1e@mail.gmail.com>]
+
+2008-10-09  Stipe Tolj  <stolj at kannel.org>
+    * doc/userguide/userguide.xml: some typo fixes, using 'aspell check -H'.
 
 2008-10-07 Alexander Malysh <amalysh at kannel.org>
     * gw/smsbox.c: commited patch that allow longer account parameter and
@@ -20,16 +55,16 @@
       [Msg-ID: <48E35531.90603@telemaque.fr>]
 
 2008-09-30 Alexander Malysh <amalysh at kannel.org>
-    * contrib/kannel-monitor/index.php: applied patch that adds inbound/outbound load and
-      version info.
+    * contrib/kannel-monitor/index.php: applied patch that adds inbound/
+      outbound load and version info.
       Thanks to Vincent CHAVANIS <v.chavanis_at_telemaque.fr> for this patch.
       [Msg-ID: <48DA51D6.9010209@telemaque.fr>]
 
 2008-09-21 Alexander Malysh <amalysh at kannel.org>
     * gw/bb_smscconn.c, gw/bearerbox.c, gw/load.c, gw/load.h:
-      added simple bandwidth meter with heuristic and needed changes to bearerbox status.
-      Bearerbox status show now 3 speeds: 1 minute sample, 5 minute sample, and over livetime.
-      Example:
+      added simple bandwidth meter with heuristic and needed changes to 
+      bearerbox status. Bearerbox status show now 3 speeds: 1 minute sample, 
+      5 minute sample, and over livetime. Example:
       SMS: inbound (0.00,0.00,0.00) msg/sec, outbound (0.00,0.00,0.00) msg/sec
 
 2008-09-16  Stipe Tolj  <stolj at kannel.org>

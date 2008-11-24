@@ -1655,6 +1655,7 @@ static void handle_pdu(SMPP *smpp, Connection *conn, SMPP_PDU *pdu,
         default:
             error(0, "SMPP[%s]: Unknown PDU type 0x%08lx, ignored.",
                   octstr_get_cstr(smpp->conn->id), pdu->type);
+            
             /*
              * We received an unknown PDU type, therefore we will respond
              * with a generic_nack PDU, see SMPP v3.4 spec, section 3.3.
