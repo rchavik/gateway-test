@@ -261,7 +261,12 @@ static Octstr *get_pattern(SMSCConn *conn, Msg *msg, const char *message)
 	    octstr_append_decimal(result, msg->sms.dlr_mask);
 	    break;
 
-	case 'c':
+    case 'D': /* meta_data */
+        if (msg->sms.meta_data != NULL)
+	        octstr_append(result, msg->sms.meta_data);
+        break;
+
+    case 'c':
 	    octstr_append_decimal(result, msg->sms.coding);
 	    break;
 
@@ -369,13 +374,14 @@ void bb_alog_sms(SMSCConn *conn, Msg *msg, const char *message)
             octstr_convert_printable(text);
         octstr_binary_to_hex(udh, 1);
 
-        alog("%s [SMSC:%s] [SVC:%s] [ACT:%s] [BINF:%s] [from:%s] [to:%s] [flags:%ld:%ld:%ld:%ld:%ld] "
+        alog("%s [SMSC:%s] [SVC:%s] [ACT:%s] [BINF:%s] [META:%s] [from:%s] [to:%s] [flags:%ld:%ld:%ld:%ld:%ld] "
              "[msg:%ld:%s] [udh:%ld:%s]",
              message,
              octstr_get_cstr(cid),
              msg->sms.service ? octstr_get_cstr(msg->sms.service) : "",
              msg->sms.account ? octstr_get_cstr(msg->sms.account) : "",
              msg->sms.binfo ? octstr_get_cstr(msg->sms.binfo) : "",
+             msg->sms.meta_data ? octstr_get_cstr(msg->sms.meta_data) : "",
              msg->sms.sender ? octstr_get_cstr(msg->sms.sender) : "",
              msg->sms.receiver ? octstr_get_cstr(msg->sms.receiver) : "",
              msg->sms.mclass, msg->sms.coding, msg->sms.mwi, msg->sms.compress,
