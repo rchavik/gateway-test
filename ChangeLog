@@ -1,4 +1,9 @@
 2008-12-02 Alexander Malysh <amalysh at kannel.org>
+    * test/drive_smpp.c, test/drive_smpp.conf: added user defined TLV to config
+      and send TLV in drive_smpp. This allow us check whether TLV & meta-data
+      works as expected.
+
+2008-12-02 Alexander Malysh <amalysh at kannel.org>
     * gw/smsc/smpp_pdu.c: allow passing SMPP spec defined TLVs to meta-data.
 
 2008-12-02 Alexander Malysh <amalysh at kannel.org>
