@@ -453,51 +453,56 @@ SMPP_PDU *smpp_pdu_unpack(Octstr *data_without_len)
     #define OPTIONAL_BEGIN  \
         {   /* Read optional parameters */  \
             while (pos + 4 <= len) { \
+                struct smpp_tlv *tlv; \
+                Octstr *tmp; \
                 unsigned long opt_tag, opt_len; \
                 opt_tag = decode_integer(data_without_len, pos, 2); pos += 2; \
-                debug("sms.smpp", 0, "Optional parameter tag (0x%04lx)", opt_tag);   \
+                debug("sms.smpp", 0, "Optional parameter tag (0x%04lx)", opt_tag);  \
                 opt_len = decode_integer(data_without_len, pos, 2); pos += 2;  \
-                debug("sms.smpp", 0, "Optional parameter length read as %ld", opt_len);
-    #define TLV_INTEGER(name, octets) \
-                if (SMPP_##name == opt_tag) { \
+                debug("sms.smpp", 0, "Optional parameter length read as %ld", opt_len); \
+                /* check configured TLVs */ \
+                tmp = octstr_format("%ld", opt_tag); \
+                tlv = dict_get(tlv_by_tag, tmp); \
+                octstr_destroy(tmp); \
+                if (tlv != NULL) debug("sms.smpp", 0, "Found configured optional parameter `%s'", octstr_get_cstr(tlv->name));
+    #define TLV_INTEGER(mname, octets) \
+                if (SMPP_##mname == opt_tag) { \
                     /* check length */ \
                     if (opt_len > octets) { \
-                        error(0, "SMPP: Optional field (%s) with invalid length (%ld) dropped.", #name, opt_len); \
+                        error(0, "SMPP: Optional field (%s) with invalid length (%ld) dropped.", #mname, opt_len); \
                         pos += opt_len; \
                         continue; \
                     } \
-                    INTEGER(name, opt_len); \
+                    INTEGER(mname, opt_len); \
+                    if (tlv != NULL) dict_put(p->tlv, tlv->name, octstr_format("%ld", p->mname)); \
                 } else
-    #define TLV_NULTERMINATED(name, max_len) \
-                if (SMPP_##name == opt_tag) { \
+    #define TLV_NULTERMINATED(mname, max_len) \
+                if (SMPP_##mname == opt_tag) { \
                     /* check length */ \
                     if (opt_len > max_len || pos+opt_len > len) { \
-                        error(0, "SMPP: Optional field (%s) with invalid length (%ld) dropped.", #name, opt_len);  \
+                        error(0, "SMPP: Optional field (%s) with invalid length (%ld) dropped.", #mname, opt_len);  \
                         pos += opt_len; \
                         continue; \
                     } \
-                    copy_until_nul(#name, data_without_len, &pos, opt_len, &p->name); \
+                    copy_until_nul(#mname, data_without_len, &pos, opt_len, &p->mname); \
+                    if (tlv != NULL) dict_put(p->tlv, tlv->name, octstr_duplicate(p->mname)); \
                 } else
-    #define TLV_OCTETS(name, min_len, max_len) \
-                if (SMPP_##name == opt_tag) { \
+    #define TLV_OCTETS(mname, min_len, max_len) \
+                if (SMPP_##mname == opt_tag) { \
                     /* check length */ \
                     if (opt_len < min_len || opt_len > max_len || pos + opt_len > len) { \
                         error(0, "SMPP: Optional field (%s) with invalid length (%ld) (should be %d - %d) dropped.", \
-                            #name, opt_len, min_len, max_len);  \
+                            #mname, opt_len, min_len, max_len);  \
                         pos += opt_len; \
                         continue; \
                     } \
-                    p->name = octstr_copy(data_without_len, pos, opt_len); \
+                    p->mname = octstr_copy(data_without_len, pos, opt_len); \
                     pos += opt_len; \
+                    if (tlv != NULL) dict_put(p->tlv, tlv->name, octstr_duplicate(p->mname)); \
                 } else
     #define OPTIONAL_END \
                 { \
                     Octstr *val = NULL; \
-                    struct smpp_tlv *tlv; \
-                    Octstr *tmp = octstr_format("%ld", opt_tag); \
-                    /* check configured TLVs */ \
-                    tlv = dict_get(tlv_by_tag, tmp); \
-                    octstr_destroy(tmp); \
                     if (tlv != NULL) { \
                         /* found configured tlv */ \
                         /* check length */ \
@@ -532,14 +537,14 @@ SMPP_PDU *smpp_pdu_unpack(Octstr *data_without_len)
                             panic(0, "SMPP: Internal error, unknown configured TLV type %d.", tlv->type); \
                             break; \
                         } \
-                    } else { \
+                    }  else { \
                         val = octstr_copy(data_without_len, pos, opt_len); \
                         if (val) \
                             octstr_binary_to_hex(val, 0); \
                         else \
                             val = octstr_create(""); \
                         warning(0, "SMPP: Unknown TLV(0x%04lx,0x%04lx,%s) for PDU type (%s) received!", \
-                              opt_tag, opt_len, octstr_get_cstr(val), pdu->type_name); \
+                            opt_tag, opt_len, octstr_get_cstr(val), pdu->type_name); \
                         octstr_destroy(val); \
                         pos += opt_len; \
                     } \
