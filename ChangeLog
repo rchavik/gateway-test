@@ -1,3 +1,7 @@
+2008-12-03 Alexander Malysh <amalysh at kannel.org>
+    * gw/bb_alog.c, doc/userguide/userguide.xml: added documentation for the
+      meta-data in the access log.
+
 2008-12-02 Alexander Malysh <amalysh at kannel.org>
     * test/drive_smpp.c, test/drive_smpp.conf: added user defined TLV to config
       and send TLV in drive_smpp. This allow us check whether TLV & meta-data

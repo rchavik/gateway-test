@@ -88,6 +88,7 @@ static Octstr *custom_log_format = NULL;
  *   %M - message waiting indicator (mwi)
  *   %C - compress indicator
  *   %d - dlr_mask
+ *   %D - meta-data
  *   %a - the original SMS message, spaces squeezed
  *   %u - UDH data (in escaped form)
  *   %U - length of UDH data
@@ -105,7 +106,7 @@ static Octstr *custom_log_format = NULL;
  * sms-service groups.
  *
  * The default access-log-format would look like this (if access-log-clean is true):
- *   "%t %l [SMSC:%i] [SVC:%n] [ACT:%A] [BINF:%B] [from:%p] [to:%P] \
+ *   "%t %l [SMSC:%i] [SVC:%n] [ACT:%A] [BINF:%B] [META:%D] [from:%p] [to:%P] \
  *    [flags:%m:%c:%M:%C:%d] [msg:%L:%b] [udh:%U:%u]"
  */
   

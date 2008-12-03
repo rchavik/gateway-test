@@ -1319,7 +1319,7 @@ admin-password = f00bar
 		  String defining a custom log file line format. May use escape codes as defined
 		  later on to substitute values of the messages into the log entry. If no
 		  custom log format is used the standard format will be:
-		  <literal>"%t %l [SMSC:%i] [SVC:%n] [ACT:%A] [BINF:%B] [from:%p] [to:%P] 
+		  <literal>"%t %l [SMSC:%i] [SVC:%n] [ACT:%A] [BINF:%B] [META:%D] [from:%p] [to:%P] 
 		           [flags:%m:%c:%M:%C:%d] [msg:%L:%b] [udh:%U:%u]"</literal>
      </entry></row>
 
@@ -9441,8 +9441,8 @@ length = 20
 <title>Bearerbox Access Log</title>
 
 	<screen><computeroutput>
-	2001-01-01 12:00:00 Sent SMS [SMSC:smsc] [SVC:sms] [from:12345] 
-	    [to:67890] [flags:0:1:0:0:0] [msg:11:Hello World] [udh:0]
+	2001-01-01 12:00:00 Sent SMS [SMSC:smsc] [SVC:sms] [ACT:account] [BINF:binfo] [META:meta]
+	    [from:12345] [to:67890] [flags:0:1:0:0:0] [msg:11:Hello World] [udh:0]
 	</computeroutput></screen>	
 
  <informaltable frame="none">
@@ -9479,6 +9479,26 @@ length = 20
      <entry valign="bottom">
 	     Service name (<literal>name</literal>) defined in configuration 
 	     group <literal>sendsms-user</literal>
+     </entry></row>
+
+     <row><entry>ACT</entry>
+     <entry>account</entry>
+     <entry valign="bottom">
+	     Account name (<literal>name</literal>) defined in configuration 
+	     group <literal>sendsms-user</literal>
+     </entry></row>
+
+     <row><entry>BINF</entry>
+     <entry>binfo</entry>
+     <entry valign="bottom">
+	     Billing information used to send this message.
+     </entry></row>
+
+     <row><entry>META</entry>
+     <entry>meta-data</entry>
+     <entry valign="bottom">
+	     Meta-data used to send this message.
+             See <xref linkend="meta-data"> for an explanation about meta-data.
      </entry></row>
 
      <row><entry>from</entry>
